@@ -1,22 +1,59 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
+// 1. Tabel Pengguna (Pasien, Dokter, Admin)
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
   name      String
-  role      String   @default("PATIENT") // PATIENT, DOCTOR, ADMIN
+  role      String   @default("PATIENT") // PATIENT, ADMIN
   nik       String?  @unique
+  
+  // Relasi: Satu user bisa punya banyak catatan kesehatan
+  checkups  HealthCheckup[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 2. Tabel Catatan Kesehatan (Jantung dari aplikasi ini)
+model HealthCheckup {
+  id        Int      @id @default(autoincrement())
+  
+  // Data Vital
+  systolic  Int      // Tekanan darah atas (misal: 120)
+  diastolic Int      // Tekanan darah bawah (misal: 80)
+  bloodSugar Int?    // Gula darah (opsional)
+  weight    Float?   // Berat badan (opsional)
+  
+  // Hasil Analisa (Diisi otomatis oleh sistem nanti)
+  status    String   // Contoh: "Normal", "Waspada", "Bahaya"
+  notes     String?  // Saran otomatis (misal: "Segera ke Puskesmas")
+
+  // Relasi ke User
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+// 3. Tabel Edukasi (Artikel/Video untuk Admin)
+model Education {
+  id        Int      @id @default(autoincrement())
+  title     String
+  category  String   // "Artikel" atau "Video"
+  content   String   @db.Text // Isi artikel atau Link Youtube
+  thumbnail String?  // URL gambar
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
