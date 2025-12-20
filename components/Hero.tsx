@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -17,9 +18,11 @@ export default function Hero() {
             tetap bisa dipakai meski sinyal internet lemah.
           </p>
 
-          <button className="bg-blue-400 hover:bg-blue-500 text-white font-medium px-8 py-3 rounded-lg shadow-md transition">
-            Mulai Periksa
-          </button>
+          <Link href="/periksa">
+            <button className="bg-blue-400 hover:bg-blue-500 text-white font-medium px-8 py-3 rounded-lg shadow-md transition">
+              Mulai Periksa
+            </button>
+          </Link>
 
           <div className="flex gap-2 mt-8 justify-center md:justify-start">
             {/* Pagination dots placeholder */}
