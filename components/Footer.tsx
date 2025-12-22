@@ -7,11 +7,6 @@ export default function Footer() {
             <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between gap-12">
                 {/* Left Side */}
                 <div className="md:w-1/3">
-                    <div className="flex items-center gap-2 mb-6">
-                        <div className="bg-white text-blue-900 p-1 rounded">🛡️</div>
-                        <span className="font-bold text-xl">DokTerKu</span>
-                    </div>
-
                     <p className="text-xs text-blue-100 mb-1">Semarang, Jawa Tengah, Indonesia</p>
                     <p className="text-xs text-blue-100 mb-4">+0800 2560 0020</p>
                     <p className="text-xs text-blue-100 mb-6">dokterku123@gmail.com</p>
@@ -24,7 +19,7 @@ export default function Footer() {
                     </div>
 
                     <div className="mt-12 text-[10px] text-blue-200">
-                        Copyright © 2025 Kelompok 5 RPL
+                        Copyright © 2025 Kelompok Kesehatan Rekayasa Perangkat Lunak
                     </div>
                 </div>
 

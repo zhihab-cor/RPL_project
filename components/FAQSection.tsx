@@ -19,11 +19,6 @@ export default function FAQSection() {
 
                     {/* Floating cards */}
                     <div className="absolute top-20 left-0 bg-white p-3 rounded-lg shadow-lg flex items-center gap-3 animate-bounce delay-700">
-                        <span className="text-yellow-400 text-2xl">😊</span>
-                        <div>
-                            <p className="font-bold text-gray-800">84k+</p>
-                            <p className="text-xs text-gray-400">Happy Patients</p>
-                        </div>
                     </div>
                 </div>
 

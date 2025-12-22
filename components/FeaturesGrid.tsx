@@ -1,17 +1,13 @@
 import { User, ClipboardList, Hospital, Building2, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
 
 export default function FeaturesGrid() {
     const features = [
-        { label: 'Jadwal Dokter', icon: User, active: false },
-        { label: 'Periksa Kesehatan', icon: ClipboardList, active: false },
-        { label: 'Jadwal Posyandu', icon: Hospital, active: true }, // Highlighted in design
-        { label: 'Jadwal Puskesmas', icon: Building2, active: false },
-        { label: 'Riwayat Pemeriksaan', icon: ShieldCheck, active: false },
+        { label: 'Jadwal Dokter', icon: User, active: false, href: '/jadwal-dokter' },
+        { label: 'Periksa Kesehatan', icon: ClipboardList, active: false, href: '/periksa' },
+        { label: 'Jadwal Puskesmas', icon: Building2, active: false, href: '/jadwal-puskesmas' },
+        { label: 'Riwayat Pemeriksaan', icon: ShieldCheck, active: false, href: '#' },
     ];
-
-    // We only show 4 items based on the design grid, but let's stick to the 4 main ones plus maybe the last one if needed.
-    // Design shows 5 items effectively if we count the rightmost one "Riwayat Pemeriksaan". 
-    // Let's create a responsive grid.
 
     return (
         <div className="max-w-6xl mx-auto px-6 py-16">
@@ -19,8 +15,9 @@ export default function FeaturesGrid() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {features.slice(0, 4).map((feature, idx) => (
-                    <div
+                    <Link
                         key={idx}
+                        href={feature.href}
                         className={`flex flex-col items-center justify-center p-8 rounded-xl cursor-pointer transition-all duration-300
                     ${feature.active
                                 ? 'bg-blue-50 border-2 border-blue-400 shadow-lg scale-105'
@@ -32,9 +29,8 @@ export default function FeaturesGrid() {
                         <span className={`text-sm font-medium ${feature.active ? 'text-blue-600' : 'text-gray-500'}`}>
                             {feature.label}
                         </span>
-                    </div>
+                    </Link>
                 ))}
-                {/* Added the 5th item manually to match if needed, or handle grid size */}
             </div>
         </div>
     );
