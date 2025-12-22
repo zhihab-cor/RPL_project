@@ -1,3 +1,4 @@
+// app/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -22,22 +23,21 @@ export default function LoginPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // app/login/page.tsx (Bagian handleSubmit saja)
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      // NOTE: This part strictly follows existing logic structure
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: formData.email,
+          // Kirim NIK hanya jika login sebagai pasien
           nik: isAdmin ? undefined : formData.nik,
           password: formData.password,
+          // Role dikirim untuk validasi di backend (opsional tergantung backend bos)
           role: isAdmin ? "admin" : "patient",
         }),
       });
@@ -45,13 +45,24 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        router.push(isAdmin ? "/admin/dashboard" : "/");
+        // --- PERBAIKAN UTAMA DISINI ---
+        // 1. Simpan data user agar dashboard bisa membacanya
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        // 2. Cek Role dari respon server (lebih akurat daripada state isAdmin)
+        const role = data.user.role ? data.user.role.toUpperCase() : "";
+
+        if (role === "ADMIN") {
+          router.push("/admin/dashboard");
+        } else {
+          router.push("/dashboard"); // Pastikan halaman /dashboard sudah dibuat
+        }
       } else {
-        setError(data.message || "Login failed");
+        setError(data.message || "Login gagal");
       }
     } catch (err) {
       console.error(err);
-      setError("Something went wrong");
+      setError("Terjadi kesalahan sistem");
     } finally {
       setLoading(false);
     }
@@ -88,9 +99,7 @@ export default function LoginPage() {
 
         <div className="z-10 relative w-[80%] h-[60%]">
           <Image
-            src={
-              isAdmin ? "/admin-doctor-animated.png" : "/login-illustration.png"
-            }
+            src={isAdmin ? "/doctor-1.png" : "/login-illustration.png"}
             alt="Doctor Illustration"
             fill
             className="object-contain"
@@ -215,6 +224,7 @@ export default function LoginPage() {
               {loading ? "Processing..." : "Log in"}
             </button>
 
+            {/* ... sisa kode di bawahnya sama (checkbox remember me, dll) ... */}
             <div className="flex items-center justify-between mt-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <div className="relative flex items-center">
