@@ -9,20 +9,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// 1. Tabel Pengguna (Pasien, Dokter, Admin)
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String
-  role      String   @default("PATIENT") // PATIENT, ADMIN
-  nik       String?  @unique
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  password       String
+  name           String
+  role           String   @default("PATIENT") // PATIENT, ADMIN
+  nik            String?  @unique
   
-  // Relasi: Satu user bisa punya banyak catatan kesehatan
-  checkups  HealthCheckup[]
+  // --- TAMBAHAN DATA MEDIS (Kartu Pasien) ---
+  gender         String?  // "L" atau "P"
+  birthDate      DateTime?
+  address        String?
+  allergies      String?  // Contoh: "Seafood, Antibiotik"
+  medicalHistory String?  // Contoh: "Diabetes, Asma"
   
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Relasi
+  checkups       HealthCheckup[]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 // 2. Tabel Catatan Kesehatan (Jantung dari aplikasi ini)
