@@ -25,9 +25,9 @@ export default function LoginPage() {
   // app/login/page.tsx (Bagian handleSubmit saja)
 
   const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
       // NOTE: This part strictly follows existing logic structure
@@ -38,14 +38,14 @@ export default function LoginPage() {
           email: formData.email,
           nik: isAdmin ? undefined : formData.nik,
           password: formData.password,
-          role: isAdmin ? "admin" : "patient"
+          role: isAdmin ? "admin" : "patient",
         }),
       });
 
-            const data = await res.json();
+      const data = await res.json();
 
       if (res.ok) {
-        router.push(isAdmin ? "/admin" : "/");
+        router.push(isAdmin ? "/admin/dashboard" : "/");
       } else {
         setError(data.message || "Login failed");
       }
@@ -57,7 +57,6 @@ export default function LoginPage() {
     }
   };
 
-
   return (
     <div className="flex min-h-screen">
       {/* Left Side */}
@@ -66,7 +65,11 @@ export default function LoginPage() {
           isAdmin ? "bg-slate-500" : "bg-blue-400"
         }`}
       >
-        <div className={`absolute top-0 w-full h-full ${isAdmin ? "bg-slate-500" : "bg-blue-400"} transition-colors duration-500`} >
+        <div
+          className={`absolute top-0 w-full h-full ${
+            isAdmin ? "bg-slate-500" : "bg-blue-400"
+          } transition-colors duration-500`}
+        >
           {/* Shapes */}
           <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-white/10 rounded-full" />
           <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-white/10 rounded-full" />
@@ -85,7 +88,9 @@ export default function LoginPage() {
 
         <div className="z-10 relative w-[80%] h-[60%]">
           <Image
-            src={isAdmin ? "/admin-doctor-animated.png" : "/login-illustration.png"}
+            src={
+              isAdmin ? "/admin-doctor-animated.png" : "/login-illustration.png"
+            }
             alt="Doctor Illustration"
             fill
             className="object-contain"
@@ -97,7 +102,7 @@ export default function LoginPage() {
       {/* Right Side */}
       <div className="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 bg-white relative">
         <button
-          onClick={() => isAdmin ? setIsAdmin(false) : router.push("/")}
+          onClick={() => (isAdmin ? setIsAdmin(false) : router.push("/"))}
           className="absolute top-6 right-6 text-gray-500 hover:text-gray-700"
         >
           <span className="text-2xl">×</span>
