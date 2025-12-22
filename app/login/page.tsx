@@ -22,6 +22,8 @@ export default function LoginPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // app/login/page.tsx (Bagian handleSubmit saja)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -43,11 +45,19 @@ export default function LoginPage() {
         // 1. Simpan Data User
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        // 2. CEK ROLE & REDIRECT (Disini kuncinya)
-        if (data.user.role === "ADMIN") {
-          router.push("/admin/dashboard"); // Admin ke Dashboard Admin
+        // DEBUG: Cek apa isi role sebenarnya (Lihat di Console Browser: Klik Kanan -> Inspect -> Console)
+        console.log("Data User Login:", data.user);
+
+        // 2. CEK ROLE (Dibuat Case-Insensitive / Huruf Besar Semua)
+        // Jadi "admin", "Admin", "ADMIN" semua akan dianggap SAMA.
+        const userRole = data.user.role ? data.user.role.toUpperCase() : "";
+
+        if (userRole === "ADMIN") {
+          console.log("Redirecting to ADMIN Dashboard...");
+          router.push("/admin/dashboard");
         } else {
-          router.push("/dashboard"); // Pasien ke Dashboard Pasien
+          console.log("Redirecting to PATIENT Dashboard...");
+          router.push("/dashboard");
         }
       } else {
         setError(data.message || "Login gagal");

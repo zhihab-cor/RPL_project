@@ -11,13 +11,18 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [admin, setAdmin] = useState<any>(null);
 
+  // app/admin/dashboard/page.tsx
+
   useEffect(() => {
-    // Cek apakah yang login benar-benar ADMIN
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const user = JSON.parse(storedUser);
-      if (user.role !== "ADMIN") {
-        // Kalau Pasien nyasar kesini, tendang balik
+
+      // LOGIC BARU: Paksa jadi Huruf Besar saat ngecek
+      const userRole = user.role ? user.role.toUpperCase() : "";
+
+      if (userRole !== "ADMIN") {
+        // Kalau bukan ADMIN, tendang ke dashboard pasien
         router.push("/dashboard");
       } else {
         setAdmin(user);
