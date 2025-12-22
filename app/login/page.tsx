@@ -28,42 +28,51 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // NOTE: This part strictly follows existing logic structure
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: formData.email,
-          nik: isAdmin ? undefined : formData.nik,
           password: formData.password,
-          role: isAdmin ? "admin" : "patient"
         }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        router.push(isAdmin ? "/admin" : "/");
+        // 1. Simpan Data User
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        // 2. CEK ROLE & REDIRECT (Disini kuncinya)
+        if (data.user.role === "ADMIN") {
+          router.push("/admin/dashboard"); // Admin ke Dashboard Admin
+        } else {
+          router.push("/dashboard"); // Pasien ke Dashboard Pasien
+        }
       } else {
-        setError(data.message || "Login failed");
+        setError(data.message || "Login gagal");
       }
     } catch (err) {
       console.error(err);
-      setError("Something went wrong");
+      setError("Terjadi kesalahan sistem");
     } finally {
       setLoading(false);
     }
   };
 
-
   return (
     <div className="flex min-h-screen">
       {/* Left Side */}
       <div
-        className={`hidden lg:flex w-1/2 relative flex-col justify-center items-center overflow-hidden transition-colors duration-500 ease-in-out ${isAdmin ? "bg-slate-500" : "bg-blue-400"
-          }`}
+        className={`hidden lg:flex w-1/2 relative flex-col justify-center items-center overflow-hidden transition-colors duration-500 ease-in-out ${
+          isAdmin ? "bg-slate-500" : "bg-blue-400"
+        }`}
       >
-        <div className={`absolute top-0 w-full h-full ${isAdmin ? "bg-slate-500" : "bg-blue-400"} transition-colors duration-500`} >
+        <div
+          className={`absolute top-0 w-full h-full ${
+            isAdmin ? "bg-slate-500" : "bg-blue-400"
+          } transition-colors duration-500`}
+        >
           {/* Shapes */}
           <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-white/10 rounded-full" />
           <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-white/10 rounded-full" />
@@ -108,13 +117,19 @@ export default function LoginPage() {
             {!isAdmin ? (
               <p className="text-gray-500">
                 Belum Daftar Akun?{" "}
-                <Link href="/register" className="text-blue-500 hover:underline">
+                <Link
+                  href="/register"
+                  className="text-blue-500 hover:underline"
+                >
                   Sign up
                 </Link>
               </p>
             ) : (
               <p className="text-gray-500">
-                New to Musaki? <Link href="#" className="text-[#3b82f6] hover:underline">Sign up</Link>
+                New to Musaki?{" "}
+                <Link href="#" className="text-[#3b82f6] hover:underline">
+                  Sign up
+                </Link>
               </p>
             )}
           </div>
@@ -136,7 +151,11 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder={isAdmin ? "Email address" : "Matew@gmail.com"}
-                className={`text-black w-full px-4 py-3 rounded-lg border focus:ring-2 outline-none transition ${isAdmin ? "border-gray-200 focus:ring-cyan-500 focus:border-cyan-500" : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"}`}
+                className={`text-black w-full px-4 py-3 rounded-lg border focus:ring-2 outline-none transition ${
+                  isAdmin
+                    ? "border-gray-200 focus:ring-cyan-500 focus:border-cyan-500"
+                    : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                }`}
                 required
               />
             </div>
@@ -168,7 +187,11 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••••••"
-                  className={`text-black w-full px-4 py-3 rounded-lg border focus:ring-2 outline-none transition pr-10 ${isAdmin ? "border-gray-200 focus:ring-cyan-500 focus:border-cyan-500" : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"}`}
+                  className={`text-black w-full px-4 py-3 rounded-lg border focus:ring-2 outline-none transition pr-10 ${
+                    isAdmin
+                      ? "border-gray-200 focus:ring-cyan-500 focus:border-cyan-500"
+                      : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                  }`}
                   required
                 />
                 <button
@@ -184,7 +207,11 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full text-white font-semibold py-3 rounded-lg transition shadow-lg mt-6 ${isAdmin ? "bg-[#3e97b1] hover:bg-[#338299]" : "bg-blue-500 hover:bg-blue-600"}`}
+              className={`w-full text-white font-semibold py-3 rounded-lg transition shadow-lg mt-6 ${
+                isAdmin
+                  ? "bg-[#3e97b1] hover:bg-[#338299]"
+                  : "bg-blue-500 hover:bg-blue-600"
+              }`}
             >
               {loading ? "Processing..." : "Log in"}
             </button>
@@ -194,16 +221,27 @@ export default function LoginPage() {
                 <div className="relative flex items-center">
                   <input
                     type="checkbox"
-                    className={`peer w-5 h-5 border-2 border-gray-300 rounded transition ${isAdmin ? "checked:bg-[#3e97b1] checked:border-[#3e97b1]" : "checked:bg-blue-500 checked:border-blue-500"}`}
+                    className={`peer w-5 h-5 border-2 border-gray-300 rounded transition ${
+                      isAdmin
+                        ? "checked:bg-[#3e97b1] checked:border-[#3e97b1]"
+                        : "checked:bg-blue-500 checked:border-blue-500"
+                    }`}
                   />
                   <Check
                     size={14}
                     className="absolute text-white left-0.5 opacity-0 peer-checked:opacity-100 pointer-events-none"
                   />
                 </div>
-                <span className="text-sm text-gray-600">{isAdmin ? "Remember me" : "Ingatkan aku"}</span>
+                <span className="text-sm text-gray-600">
+                  {isAdmin ? "Remember me" : "Ingatkan aku"}
+                </span>
               </label>
-              <Link href="#" className={`text-sm hover:underline ${isAdmin ? "text-[#3e97b1]" : "text-blue-500"}`}>
+              <Link
+                href="#"
+                className={`text-sm hover:underline ${
+                  isAdmin ? "text-[#3e97b1]" : "text-blue-500"
+                }`}
+              >
                 {isAdmin ? "Forgot password?" : "Lupa Sandi?"}
               </Link>
             </div>
@@ -252,7 +290,6 @@ export default function LoginPage() {
                 Masuk Sebagai Pasien
               </button>
             )}
-
           </div>
         </div>
       </div>
