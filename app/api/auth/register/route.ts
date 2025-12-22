@@ -1,58 +1,54 @@
+// app/api/auth/register/route.ts
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
   try {
-    const { email, password, name, nik, role } = await req.json();
+    const { email, password, nik, phone, name } = await req.json(); // Tambah 'name'
 
-    if (!email || !password || !name) {
+    if (!email || !password || !nik || !name) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { message: "Mohon lengkapi semua data" },
         { status: 400 }
       );
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    // Cek User Ganda (Email atau NIK)
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ email: email }, { nik: nik }],
+      },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { message: "User already exists" },
+        { message: "Email atau NIK sudah terdaftar" },
         { status: 400 }
       );
     }
 
-    // const hashedPassword = await bcrypt.hash(password, 10);
-    const hashedPassword = password;
+    // Hash Password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create User
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
-        name,
+        name: name, // Gunakan nama inputan user
         nik,
-        role: role || "PATIENT",
+        role: "PATIENT", // Default role
+        // phone: phone (Kalau di schema ada kolom phone, masukkan juga)
       },
     });
 
     return NextResponse.json(
-      {
-        message: "User created successfully",
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        },
-      },
+      { message: "Registrasi Berhasil", user },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Registration error:", error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("Register Error:", error);
+    return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
 }

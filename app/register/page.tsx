@@ -1,3 +1,4 @@
+// app/register/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -9,7 +10,10 @@ import { Eye, EyeOff, Calendar, ChevronDown } from "lucide-react";
 export default function RegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+
+  // --- PERBAIKAN 1: Tambahkan 'name' disini agar tidak error ---
   const [formData, setFormData] = useState({
+    name: "", // <-- Tambahan Penting!
     email: "",
     phone: "",
     nik: "",
@@ -27,9 +31,14 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validasi Sederhana
-    if (!formData.email || !formData.password || !formData.nik) {
-      alert("Mohon lengkapi Email, Password, dan NIK.");
+    // Validasi: Pastikan nama juga diisi
+    if (
+      !formData.email ||
+      !formData.password ||
+      !formData.nik ||
+      !formData.name
+    ) {
+      alert("Mohon lengkapi Nama, Email, Password, dan NIK.");
       return;
     }
 
@@ -38,12 +47,13 @@ export default function RegisterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          name: formData.name, // Kirim nama inputan user
           email: formData.email,
           phone: formData.phone,
           nik: formData.nik,
           password: formData.password,
-          birthDate: formData.birthDate, // Pastikan format YYYY-MM-DD
-          name: "Pasien Baru", // Default name karena di form tidak ada input nama
+          birthDate: formData.birthDate,
+          role: "PATIENT", // Default Role
         }),
       });
 
@@ -63,7 +73,7 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Left Side - Blue Background with Illustration */}
+      {/* Left Side */}
       <div className="hidden lg:flex w-1/2 relative flex-col justify-center items-center bg-blue-400 overflow-hidden">
         <div className="relative w-full h-full">
           <Image
@@ -76,7 +86,7 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Right Side - Form */}
+      {/* Right Side */}
       <div className="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 bg-white relative">
         <button
           onClick={() => router.push("/")}
@@ -86,7 +96,7 @@ export default function RegisterPage() {
         </button>
 
         <div className="max-w-md w-full mx-auto">
-          <div className="mb-8 ">
+          <div className="mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
               Daftar Sekarang
             </h2>
@@ -102,6 +112,22 @@ export default function RegisterPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* --- PERBAIKAN 2: Input Nama Lengkap --- */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nama Lengkap
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Masukkan Nama Lengkap"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition text-gray-900"
+                required
+              />
+            </div>
+
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -112,8 +138,8 @@ export default function RegisterPage() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Matew@gmail.com"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-900"
+                placeholder="email@contoh.com"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition text-gray-900"
                 required
               />
             </div>
@@ -136,8 +162,8 @@ export default function RegisterPage() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  placeholder="08xxxxx"
-                  className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-900"
+                  placeholder="8xxxxx"
+                  className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition text-gray-900"
                 />
               </div>
             </div>
@@ -153,11 +179,12 @@ export default function RegisterPage() {
                 value={formData.nik}
                 onChange={handleChange}
                 placeholder="333XXXXXX"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-900"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition text-gray-900"
+                required
               />
             </div>
 
-            {/* Kata Sandi */}
+            {/* Password */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Kata Sandi
@@ -169,7 +196,7 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••••••"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition pr-10 text-gray-900"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition pr-10 text-gray-900"
                   required
                 />
                 <button
@@ -193,7 +220,7 @@ export default function RegisterPage() {
                   name="birthDate"
                   value={formData.birthDate}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-900"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition text-gray-900"
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                   <Calendar size={20} />
@@ -201,7 +228,6 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition shadow-md mt-4"
@@ -209,7 +235,6 @@ export default function RegisterPage() {
               Sign Up
             </button>
 
-            {/* Remember Me */}
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
