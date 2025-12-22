@@ -25,7 +25,7 @@ export default function DashboardPage() {
         router.push("/admin/dashboard");
       } else {
         setUser(userData);
-        // 2. Ambil Data Riwayat
+        // 2. Ambil Data Riwayat (Panggil fungsi fetch)
         fetchHistory(userData.id);
       }
     } else {
@@ -35,7 +35,11 @@ export default function DashboardPage() {
 
   const fetchHistory = async (userId: number) => {
     try {
-      const res = await fetch(`/api/checkup/history?userId=${userId}`);
+      // --- PERBAIKAN DISINI ---
+      // Sebelumnya: /api/checkup/history (Salah Alamat)
+      // Sekarang: /api/history (Sesuai nama file route.ts bos)
+      const res = await fetch(`/api/history?userId=${userId}`);
+
       const data = await res.json();
       if (res.ok) {
         setCheckups(data.data);
@@ -202,9 +206,9 @@ export default function DashboardPage() {
                       <div className="flex items-start gap-4">
                         <div
                           className={`p-3 rounded-full mt-1 ${
-                            item.status.includes("Bahaya")
+                            item.status.includes("BAHAYA")
                               ? "bg-red-100 text-red-600"
-                              : item.status.includes("Waspada")
+                              : item.status.includes("WASPADA")
                               ? "bg-yellow-100 text-yellow-600"
                               : "bg-green-100 text-green-600"
                           }`}
@@ -237,14 +241,18 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pl-14 sm:pl-0">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-bold border ${
-                            item.status.includes("Bahaya")
+                            item.status.includes("BAHAYA")
                               ? "bg-red-50 text-red-700 border-red-100"
-                              : item.status.includes("Waspada")
+                              : item.status.includes("WASPADA")
                               ? "bg-yellow-50 text-yellow-700 border-yellow-100"
                               : "bg-green-50 text-green-700 border-green-100"
                           }`}
                         >
-                          {item.status}
+                          {item.status.includes("BAHAYA")
+                            ? "BAHAYA"
+                            : item.status.includes("WASPADA")
+                            ? "WASPADA"
+                            : "SEHAT"}
                         </span>
                         <ArrowRight
                           size={18}
