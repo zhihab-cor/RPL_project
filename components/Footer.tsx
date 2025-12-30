@@ -31,9 +31,6 @@ export default function Footer() {
                         {/* Service Pills */}
                         <div className="flex flex-wrap gap-3">
                             <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-2 rounded-full text-xs font-bold text-gray-700 cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition">
-                                <MessageCircle size={14} className="text-blue-500" /> Chat dengan Dokter
-                            </div>
-                            <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-2 rounded-full text-xs font-bold text-gray-700 cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition">
                                 <Shield size={14} className="text-blue-500" /> Asuransiku
                             </div>
                             <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-3 py-2 rounded-full text-xs font-bold text-gray-700 cursor-pointer hover:bg-blue-50 hover:border-blue-200 transition">
@@ -139,7 +136,7 @@ export default function Footer() {
                         />
                     </div>
 
-                    <p className="text-xs text-gray-400 text-center">© 2025 DokterKu. All rights reserved.</p>
+                    <p className="text-xs text-gray-400 text-center">© 2025 DokterKu–. All rights reserved.</p>
                 </div>
             </div>
         </footer>
