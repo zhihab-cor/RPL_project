@@ -1,6 +1,6 @@
 // app/api/auth/register/route.ts
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // PERBAIKAN 1: Hapus kurung kurawal { }
+import { supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
@@ -13,9 +13,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    // Cek apakah email sudah terdaftar
+    const { data: existingUser } = await supabase
+      .from("User")
+      .select("id")
+      .eq("email", email)
+      .single();
 
     if (existingUser) {
       return NextResponse.json(
@@ -24,19 +27,26 @@ export async function POST(req: Request) {
       );
     }
 
-    // PERBAIKAN 2: Gunakan Password Polos (Tanpa Bcrypt)
-    // const hashedPassword = await bcrypt.hash(password, 10); // <--- JANGAN DIPAKAI
-    const hashedPassword = password; // <--- PAKAI INI
-
-    const user = await prisma.user.create({
-      data: {
+    // Simpan password polos (tanpa hash)
+    const { data: user, error } = await supabase
+      .from("User")
+      .insert({
         email,
-        password: hashedPassword, // Simpan password asli
+        password,
         name,
-        nik,
+        nik: nik || null,
         role: role || "PATIENT",
-      },
-    });
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Register Error:", error);
+      return NextResponse.json(
+        { message: "Gagal mendaftar" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       { message: "Registrasi Berhasil", user },

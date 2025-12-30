@@ -6,14 +6,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Calendar, ChevronDown } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // --- PERBAIKAN 1: Tambahkan 'name' disini agar tidak error ---
   const [formData, setFormData] = useState({
-    name: "", // <-- Tambahan Penting!
+    name: "",
     email: "",
     phone: "",
     nik: "",
@@ -30,8 +31,8 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    // Validasi: Pastikan nama juga diisi
     if (
       !formData.email ||
       !formData.password ||
@@ -39,35 +40,52 @@ export default function RegisterPage() {
       !formData.name
     ) {
       alert("Mohon lengkapi Nama, Email, Password, dan NIK.");
+      setLoading(false);
       return;
     }
 
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name, // Kirim nama inputan user
-          email: formData.email,
-          phone: formData.phone,
-          nik: formData.nik,
-          password: formData.password,
-          birthDate: formData.birthDate,
-          role: "PATIENT", // Default Role
-        }),
-      });
+      // Cek apakah email sudah terdaftar
+      const { data: existingUser } = await supabase
+        .from("User")
+        .select("id")
+        .eq("email", formData.email)
+        .single();
 
-      const data = await res.json();
-
-      if (res.ok) {
-        alert("Registrasi Berhasil! Silakan Login.");
-        router.push("/login");
-      } else {
-        alert(data.message || "Registrasi Gagal");
+      if (existingUser) {
+        alert("Email sudah terdaftar");
+        setLoading(false);
+        return;
       }
+
+      // Insert user baru ke Supabase
+      const { data: user, error } = await supabase
+        .from("User")
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          nik: formData.nik,
+          birthDate: formData.birthDate || null,
+          role: "PATIENT",
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Register Error:", error);
+        alert("Registrasi Gagal: " + error.message);
+        setLoading(false);
+        return;
+      }
+
+      alert("Registrasi Berhasil! Silakan Login.");
+      router.push("/login");
     } catch (error) {
       console.error(error);
       alert("Terjadi kesalahan sistem.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -112,7 +130,7 @@ export default function RegisterPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* --- PERBAIKAN 2: Input Nama Lengkap --- */}
+            {/* Nama Lengkap */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Nama Lengkap
@@ -230,9 +248,10 @@ export default function RegisterPage() {
 
             <button
               type="submit"
+              disabled={loading}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition shadow-md mt-4"
             >
-              Sign Up
+              {loading ? "Processing..." : "Sign Up"}
             </button>
 
             <div className="flex items-center gap-2">

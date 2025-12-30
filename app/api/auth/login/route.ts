@@ -1,25 +1,26 @@
 // app/api/auth/login/route.ts
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // PERBAIKAN: Hapus kurung kurawal { }
+import { supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const { data: user, error } = await supabase
+      .from("User")
+      .select("*")
+      .eq("email", email)
+      .single();
 
-    if (!user) {
+    if (error || !user) {
       return NextResponse.json(
         { message: "User tidak ditemukan" },
         { status: 404 }
       );
     }
 
-    // PERBAIKAN: Cek Password Polos (Langsung bandingkan string)
-    // const isMatch = await bcrypt.compare(password, user.password); // <--- JANGAN DIPAKAI
-    const isMatch = password === user.password; // <--- PAKAI INI
+    // Cek Password Polos (Langsung bandingkan string)
+    const isMatch = password === user.password;
 
     if (!isMatch) {
       return NextResponse.json({ message: "Password salah" }, { status: 401 });

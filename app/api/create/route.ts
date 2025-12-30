@@ -1,6 +1,6 @@
-// app/api/checkup/create/route.ts
+// app/api/create/route.ts
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // PERBAIKAN: Hapus kurung kurawal { }
+import { supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
@@ -16,8 +16,9 @@ export async function POST(req: Request) {
       userId,
     } = body;
 
-    const newCheckup = await prisma.healthCheckup.create({
-      data: {
+    const { data: newCheckup, error } = await supabase
+      .from("HealthCheckup")
+      .insert({
         systolic: Number(systolic),
         diastolic: Number(diastolic),
         bloodSugar: Number(bloodSugar) || 0,
@@ -26,8 +27,14 @@ export async function POST(req: Request) {
         status: status,
         notes: notes || "",
         userId: Number(userId),
-      },
-    });
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Create Checkup Error:", error);
+      return NextResponse.json({ message: "Gagal simpan" }, { status: 500 });
+    }
 
     return NextResponse.json(
       { message: "Berhasil", data: newCheckup },

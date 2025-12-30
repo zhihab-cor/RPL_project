@@ -1,6 +1,6 @@
-// app/api/checkup/history/route.ts
+// app/api/history/route.ts
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma"; // PERBAIKAN: Hapus kurung kurawal { }
+import { supabase } from "@/lib/supabase";
 
 export async function GET(req: Request) {
   try {
@@ -14,11 +14,19 @@ export async function GET(req: Request) {
       );
     }
 
-    // Ambil data real dari database
-    const history = await prisma.healthCheckup.findMany({
-      where: { userId: Number(userId) },
-      orderBy: { createdAt: "desc" },
-    });
+    const { data: history, error } = await supabase
+      .from("HealthCheckup")
+      .select("*")
+      .eq("userId", Number(userId))
+      .order("createdAt", { ascending: false });
+
+    if (error) {
+      console.error("History Error:", error);
+      return NextResponse.json(
+        { message: "Gagal mengambil data" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ data: history }, { status: 200 });
   } catch (error) {

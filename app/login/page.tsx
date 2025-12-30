@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Check, Facebook } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,36 +30,35 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          // Kirim NIK hanya jika login sebagai pasien
-          nik: isAdmin ? undefined : formData.nik,
-          password: formData.password,
-          // Role dikirim untuk validasi di backend (opsional tergantung backend bos)
-          role: isAdmin ? "admin" : "patient",
-        }),
-      });
+      // Query langsung ke Supabase
+      const { data: user, error: dbError } = await supabase
+        .from("User")
+        .select("*")
+        .eq("email", formData.email)
+        .single();
 
-      const data = await res.json();
+      if (dbError || !user) {
+        setError("User tidak ditemukan");
+        setLoading(false);
+        return;
+      }
 
-      if (res.ok) {
-        // --- PERBAIKAN UTAMA DISINI ---
-        // 1. Simpan data user agar dashboard bisa membacanya
-        localStorage.setItem("user", JSON.stringify(data.user));
+      // Cek Password
+      if (formData.password !== user.password) {
+        setError("Password salah");
+        setLoading(false);
+        return;
+      }
 
-        // 2. Cek Role dari respon server (lebih akurat daripada state isAdmin)
-        const role = data.user.role ? data.user.role.toUpperCase() : "";
+      // Simpan ke localStorage
+      localStorage.setItem("user", JSON.stringify(user));
 
-        if (role === "ADMIN") {
-          router.push("/admin/dashboard");
-        } else {
-          router.push("/dashboard"); // Pastikan halaman /dashboard sudah dibuat
-        }
+      // Redirect berdasarkan role
+      const role = user.role ? user.role.toUpperCase() : "";
+      if (role === "ADMIN") {
+        router.push("/admin/dashboard");
       } else {
-        setError(data.message || "Login gagal");
+        router.push("/dashboard");
       }
     } catch (err) {
       console.error(err);
@@ -72,14 +72,12 @@ export default function LoginPage() {
     <div className="flex min-h-screen">
       {/* Left Side */}
       <div
-        className={`hidden lg:flex w-1/2 relative flex-col justify-center items-center overflow-hidden transition-colors duration-500 ease-in-out ${
-          isAdmin ? "bg-slate-500" : "bg-blue-400"
-        }`}
+        className={`hidden lg:flex w-1/2 relative flex-col justify-center items-center overflow-hidden transition-colors duration-500 ease-in-out ${isAdmin ? "bg-slate-500" : "bg-blue-400"
+          }`}
       >
         <div
-          className={`absolute top-0 w-full h-full ${
-            isAdmin ? "bg-slate-500" : "bg-blue-400"
-          } transition-colors duration-500`}
+          className={`absolute top-0 w-full h-full ${isAdmin ? "bg-slate-500" : "bg-blue-400"
+            } transition-colors duration-500`}
         >
           {/* Shapes */}
           <div className="absolute top-[-10%] left-[-10%] w-64 h-64 bg-white/10 rounded-full" />
@@ -159,11 +157,10 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder={isAdmin ? "Email address" : "Matew@gmail.com"}
-                className={`text-black w-full px-4 py-3 rounded-lg border focus:ring-2 outline-none transition ${
-                  isAdmin
+                className={`text-black w-full px-4 py-3 rounded-lg border focus:ring-2 outline-none transition ${isAdmin
                     ? "border-gray-200 focus:ring-cyan-500 focus:border-cyan-500"
                     : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                }`}
+                  }`}
                 required
               />
             </div>
@@ -195,11 +192,10 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••••••"
-                  className={`text-black w-full px-4 py-3 rounded-lg border focus:ring-2 outline-none transition pr-10 ${
-                    isAdmin
+                  className={`text-black w-full px-4 py-3 rounded-lg border focus:ring-2 outline-none transition pr-10 ${isAdmin
                       ? "border-gray-200 focus:ring-cyan-500 focus:border-cyan-500"
                       : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                  }`}
+                    }`}
                   required
                 />
                 <button
@@ -215,26 +211,23 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full text-white font-semibold py-3 rounded-lg transition shadow-lg mt-6 ${
-                isAdmin
+              className={`w-full text-white font-semibold py-3 rounded-lg transition shadow-lg mt-6 ${isAdmin
                   ? "bg-[#3e97b1] hover:bg-[#338299]"
                   : "bg-blue-500 hover:bg-blue-600"
-              }`}
+                }`}
             >
               {loading ? "Processing..." : "Log in"}
             </button>
 
-            {/* ... sisa kode di bawahnya sama (checkbox remember me, dll) ... */}
             <div className="flex items-center justify-between mt-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <div className="relative flex items-center">
                   <input
                     type="checkbox"
-                    className={`peer w-5 h-5 border-2 border-gray-300 rounded transition ${
-                      isAdmin
+                    className={`peer w-5 h-5 border-2 border-gray-300 rounded transition ${isAdmin
                         ? "checked:bg-[#3e97b1] checked:border-[#3e97b1]"
                         : "checked:bg-blue-500 checked:border-blue-500"
-                    }`}
+                      }`}
                   />
                   <Check
                     size={14}
@@ -247,9 +240,8 @@ export default function LoginPage() {
               </label>
               <Link
                 href="#"
-                className={`text-sm hover:underline ${
-                  isAdmin ? "text-[#3e97b1]" : "text-blue-500"
-                }`}
+                className={`text-sm hover:underline ${isAdmin ? "text-[#3e97b1]" : "text-blue-500"
+                  }`}
               >
                 {isAdmin ? "Forgot password?" : "Lupa Sandi?"}
               </Link>
@@ -277,7 +269,7 @@ export default function LoginPage() {
                   <Facebook size={24} />
                 </button>
                 <button className="flex justify-center items-center py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-                  <span className="text-xl"></span>
+                  <span className="text-xl"></span>
                 </button>
               </div>
             </div>

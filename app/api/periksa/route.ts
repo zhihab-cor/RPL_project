@@ -1,11 +1,10 @@
-// app/api/checkup/route.ts
+// app/api/periksa/route.ts
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // Ambil field height juga
     const {
       systolic,
       diastolic,
@@ -17,18 +16,28 @@ export async function POST(req: Request) {
       userId,
     } = body;
 
-    const checkup = await prisma.healthCheckup.create({
-      data: {
+    const { data: checkup, error } = await supabase
+      .from("HealthCheckup")
+      .insert({
         systolic: Number(systolic),
         diastolic: Number(diastolic),
         bloodSugar: bloodSugar ? Number(bloodSugar) : null,
         weight: weight ? Number(weight) : null,
-        height: height ? Number(height) : null, // <-- SIMPAN HEIGHT
+        height: height ? Number(height) : null,
         status,
         notes,
         userId: Number(userId),
-      },
-    });
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Database Error:", error);
+      return NextResponse.json(
+        { message: "Internal Server Error" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       { message: "Success", data: checkup },
