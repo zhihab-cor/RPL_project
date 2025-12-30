@@ -158,7 +158,7 @@ export default function LoginPage() {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder={isAdmin ? "Email address" : "Matew@gmail.com"}
+                placeholder={isAdmin ? "Email address" : "emailaddres@gmail.com"}
                 className={`text-black w-full px-4 py-3 rounded-lg border focus:ring-2 outline-none transition ${
                   isAdmin
                     ? "border-gray-200 focus:ring-cyan-500 focus:border-cyan-500"
@@ -178,7 +178,7 @@ export default function LoginPage() {
                   name="nik"
                   value={formData.nik}
                   onChange={handleChange}
-                  placeholder="33xxx/08xxx"
+                  placeholder="0822xxxxxx"
                   className="text-black w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                 />
               </div>
