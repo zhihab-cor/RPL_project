@@ -54,7 +54,10 @@ export default function AdminDashboard() {
         {/* Menu Admin */}
         <div className="grid md:grid-cols-3 gap-6">
           {/* Menu 1: Manajemen Pasien */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer">
+          <div
+            onClick={() => router.push("/admin/pasien")}
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer"
+          >
             <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center text-blue-600 mb-4">
               <Users size={24} />
             </div>
