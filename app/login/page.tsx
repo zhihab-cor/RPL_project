@@ -57,6 +57,8 @@ export default function LoginPage() {
       const role = user.role ? user.role.toUpperCase() : "";
       if (role === "ADMIN") {
         router.push("/admin/dashboard");
+      } else if (role === "DOCTOR") {
+        router.push("/dokter/dashboard");
       } else {
         router.push("/dashboard");
       }

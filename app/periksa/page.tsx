@@ -13,6 +13,7 @@ import {
   Droplet,
   Ruler,
   Calendar,
+  User,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -20,6 +21,7 @@ export default function PeriksaPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
 
   const [result, setResult] = useState<null | {
@@ -27,6 +29,16 @@ export default function PeriksaPage() {
     color: string;
     notes: string[];
   }>(null);
+  
+  // Form data pasien untuk admin
+  const [patientData, setPatientData] = useState({
+    name: "",
+    age: "",
+    gender: "Laki-laki",
+    nik: "",
+    phone: "",
+  });
+
   const [formData, setFormData] = useState({
     systolic: "120",
     diastolic: "80",
@@ -45,7 +57,15 @@ export default function PeriksaPage() {
 
     const userData = JSON.parse(storedUser);
     setUser(userData);
-    fetchHistory(userData.id);
+    
+    // Deteksi admin
+    const userRole = userData.role ? userData.role.toUpperCase() : "";
+    setIsAdmin(userRole === "ADMIN");
+    
+    // Jika bukan admin, ambil riwayat sendiri
+    if (userRole !== "ADMIN") {
+      fetchHistory(userData.id);
+    }
   }, [router]);
 
   const fetchHistory = async (userId: number) => {
@@ -138,6 +158,48 @@ export default function PeriksaPage() {
 
     // Simpan langsung ke Supabase
     try {
+      let targetUserId = user.id;
+
+      // Jika admin, buat/cari user pasien dulu
+      if (isAdmin) {
+        if (!patientData.name || !patientData.nik) {
+          alert("Nama dan NIK pasien wajib diisi!");
+          setLoading(false);
+          return;
+        }
+
+        // Cek apakah pasien dengan NIK ini sudah ada
+        const { data: existingPatient } = await supabase
+          .from("User")
+          .select("id")
+          .eq("nik", patientData.nik)
+          .single();
+
+        if (existingPatient) {
+          targetUserId = existingPatient.id;
+        } else {
+          // Buat user baru
+          const { data: newPatient, error: createError } = await supabase
+            .from("User")
+            .insert({
+              name: patientData.name,
+              email: `${patientData.nik}@pasien.local`,
+              password: patientData.nik,
+              nik: patientData.nik,
+              role: "PATIENT",
+            })
+            .select()
+            .single();
+
+          if (createError || !newPatient) {
+            alert("Gagal membuat data pasien: " + (createError?.message || "Unknown error"));
+            setLoading(false);
+            return;
+          }
+          targetUserId = newPatient.id;
+        }
+      }
+
       const { error } = await supabase.from("HealthCheckup").insert({
         systolic: Number(formData.systolic),
         diastolic: Number(formData.diastolic),
@@ -145,12 +207,20 @@ export default function PeriksaPage() {
         weight: Number(formData.weight) || 0,
         height: Number(formData.height) || 0,
         status: status,
-        notes: finalNotes.join(". "),
-        userId: user.id,
+        notes: isAdmin 
+          ? `Pasien: ${patientData.name} (${patientData.gender}, ${patientData.age} thn). ${finalNotes.join(". ")}`
+          : finalNotes.join(". "),
+        userId: targetUserId,
       });
 
       if (!error) {
-        fetchHistory(user.id);
+        if (isAdmin) {
+          alert("Data pemeriksaan pasien berhasil disimpan!");
+          // Reset form pasien
+          setPatientData({ name: "", age: "", gender: "Laki-laki", nik: "", phone: "" });
+        } else {
+          fetchHistory(user.id);
+        }
       } else {
         console.error("Insert Error:", error);
         alert("Gagal menyimpan data ke database");
@@ -181,6 +251,65 @@ export default function PeriksaPage() {
           <div className="p-8 grid md:grid-cols-2 gap-10">
             {/* Form Input */}
             <form onSubmit={analyzeHealth} className="space-y-6">
+              {/* Admin: Form Data Pasien */}
+              {isAdmin && (
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                  <label className="block text-sm font-bold text-blue-800 mb-4 flex items-center gap-2">
+                    <User size={18} className="text-blue-600" /> Data Pasien
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <input
+                        type="text"
+                        placeholder="Nama Lengkap *"
+                        value={patientData.name}
+                        onChange={(e) => setPatientData({ ...patientData, name: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-blue-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="NIK *"
+                        value={patientData.nik}
+                        onChange={(e) => setPatientData({ ...patientData, nik: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-blue-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="No HP"
+                        value={patientData.phone}
+                        onChange={(e) => setPatientData({ ...patientData, phone: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-blue-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="number"
+                        placeholder="Umur (tahun)"
+                        value={patientData.age}
+                        onChange={(e) => setPatientData({ ...patientData, age: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-blue-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <select
+                        value={patientData.gender}
+                        onChange={(e) => setPatientData({ ...patientData, gender: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-blue-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                      >
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Tensi */}
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <label className="block text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">

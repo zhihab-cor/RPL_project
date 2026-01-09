@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Users, FileText, Activity, LogOut } from "lucide-react";
+import { Users, FileText, Activity, LogOut, Stethoscope } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
@@ -68,7 +68,10 @@ export default function AdminDashboard() {
           </div>
 
           {/* Menu 2: Input Pemeriksaan (SOAP) */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer">
+          <div 
+            onClick={() => router.push("/periksa")}
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer"
+          >
             <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center text-green-600 mb-4">
               <FileText size={24} />
             </div>
@@ -78,14 +81,31 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          {/* Menu 3: Stok Obat (View Only) */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer">
+          {/* Menu 3: Stok Obat */}
+          <div 
+            onClick={() => router.push("/admin/stok-obat")}
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer"
+          >
             <div className="bg-purple-100 w-12 h-12 rounded-lg flex items-center justify-center text-purple-600 mb-4">
               <Activity size={24} />
             </div>
             <h3 className="font-bold text-lg mb-2">Stok Obat</h3>
             <p className="text-sm text-gray-500">
-              Cek ketersediaan obat sebelum meresepkan.
+              Kelola stok obat di puskesmas.
+            </p>
+          </div>
+
+          {/* Menu 4: Jadwal Dokter */}
+          <div 
+            onClick={() => router.push("/admin/jadwal-dokter")}
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer"
+          >
+            <div className="bg-indigo-100 w-12 h-12 rounded-lg flex items-center justify-center text-indigo-600 mb-4">
+              <Stethoscope size={24} />
+            </div>
+            <h3 className="font-bold text-lg mb-2">Jadwal Dokter</h3>
+            <p className="text-sm text-gray-500">
+              Buat janji temu pasien dengan dokter.
             </p>
           </div>
         </div>

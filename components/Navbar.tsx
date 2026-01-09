@@ -50,7 +50,9 @@ export default function Navbar() {
                 user
                   ? user.role === "ADMIN"
                     ? "/admin/dashboard"
-                    : "/dashboard"
+                    : user.role === "DOCTOR"
+                      ? "/dokter/dashboard"
+                      : "/dashboard"
                   : "/"
               }
               className="text-gray-600 hover:text-blue-600 font-medium transition"
@@ -120,7 +122,7 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden bg-white border-t p-4 space-y-2 shadow-lg">
           <Link
-            href={user ? (user.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard') : '/'}
+            href={user ? (user.role === 'ADMIN' ? '/admin/dashboard' : user.role === 'DOCTOR' ? '/dokter/dashboard' : '/dashboard') : '/'}
             className="block px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium"
           >
             Beranda

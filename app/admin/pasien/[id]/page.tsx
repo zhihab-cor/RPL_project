@@ -4,9 +4,10 @@
 import { useState, useEffect, use } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowLeft, User, Activity, Calendar, Mail, CreditCard, Pill, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, User, Activity, Calendar, Mail, CreditCard, Pill, Plus, Trash2, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import ReferralLetterModal from "@/components/ReferralLetterModal";
 
 interface Patient {
     id: number;
@@ -51,6 +52,7 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         dosage: "",
         instructions: "",
     });
+    const [showReferralModal, setShowReferralModal] = useState(false);
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -251,8 +253,16 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                         </div>
 
-                        <div className="bg-white/20 px-4 py-2 rounded-lg text-sm font-bold border border-white/10">
-                            {checkups.length} Riwayat
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setShowReferralModal(true)}
+                                className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg text-sm font-bold border border-white/10 flex items-center gap-2 transition"
+                            >
+                                <FileText size={16} /> Surat Rujukan
+                            </button>
+                            <div className="bg-white/20 px-4 py-2 rounded-lg text-sm font-bold border border-white/10">
+                                {checkups.length} Riwayat
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -327,18 +337,21 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                 >
                                     <div className="flex items-start gap-4">
                                         <div
-                                            className={`p-3 rounded-full mt-1 ${item.status.includes("BAHAYA")
-                                                    ? "bg-red-100 text-red-600"
-                                                    : item.status.includes("WASPADA")
-                                                        ? "bg-yellow-100 text-yellow-600"
-                                                        : "bg-green-100 text-green-600"
-                                                }`}
+                                            className={`p-3 rounded-full mt-1 ${
+                                                item.status.includes("DIAGNOSA")
+                                                    ? "bg-indigo-100 text-indigo-600"
+                                                    : item.status.includes("BAHAYA")
+                                                        ? "bg-red-100 text-red-600"
+                                                        : item.status.includes("WASPADA")
+                                                            ? "bg-yellow-100 text-yellow-600"
+                                                            : "bg-green-100 text-green-600"
+                                            }`}
                                         >
                                             <Activity size={20} />
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-gray-900">
-                                                Pemeriksaan Mandiri
+                                                {item.status.includes("DIAGNOSA") ? "Diagnosa Dokter" : "Pemeriksaan Mandiri"}
                                             </h4>
                                             <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
                                                 <Calendar size={14} />
@@ -349,27 +362,38 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                                     day: "numeric",
                                                 })}
                                             </div>
-                                            <p className="text-xs text-gray-400 mt-1">
-                                                Tensi: {item.systolic}/{item.diastolic} • Gula:{" "}
-                                                {item.bloodSugar || "-"} • BB: {item.weight || "-"}kg • TB: {item.height || "-"}cm
-                                            </p>
+                                            {item.status.includes("DIAGNOSA") ? (
+                                                <p className="text-sm text-gray-700 mt-2 bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                                                    <strong>Diagnosa:</strong> {item.notes || "-"}
+                                                </p>
+                                            ) : (
+                                                <p className="text-xs text-gray-400 mt-1">
+                                                    Tensi: {item.systolic}/{item.diastolic} • Gula:{" "}
+                                                    {item.bloodSugar || "-"} • BB: {item.weight || "-"}kg • TB: {item.height || "-"}cm
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-4 pl-14 sm:pl-0">
                                         <span
-                                            className={`px-3 py-1 rounded-full text-xs font-bold border ${item.status.includes("BAHAYA")
-                                                    ? "bg-red-50 text-red-700 border-red-100"
-                                                    : item.status.includes("WASPADA")
-                                                        ? "bg-yellow-50 text-yellow-700 border-yellow-100"
-                                                        : "bg-green-50 text-green-700 border-green-100"
-                                                }`}
+                                            className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                                                item.status.includes("DIAGNOSA")
+                                                    ? "bg-indigo-50 text-indigo-700 border-indigo-100"
+                                                    : item.status.includes("BAHAYA")
+                                                        ? "bg-red-50 text-red-700 border-red-100"
+                                                        : item.status.includes("WASPADA")
+                                                            ? "bg-yellow-50 text-yellow-700 border-yellow-100"
+                                                            : "bg-green-50 text-green-700 border-green-100"
+                                            }`}
                                         >
-                                            {item.status.includes("BAHAYA")
-                                                ? "BAHAYA"
-                                                : item.status.includes("WASPADA")
-                                                    ? "WASPADA"
-                                                    : "SEHAT"}
+                                            {item.status.includes("DIAGNOSA")
+                                                ? "DIAGNOSA"
+                                                : item.status.includes("BAHAYA")
+                                                    ? "BAHAYA"
+                                                    : item.status.includes("WASPADA")
+                                                        ? "WASPADA"
+                                                        : "SEHAT"}
                                         </span>
                                     </div>
                                 </div>
@@ -500,6 +524,18 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 </div>
             </div>
             <Footer />
+
+            {/* Referral Letter Modal */}
+            <ReferralLetterModal
+                isOpen={showReferralModal}
+                onClose={() => setShowReferralModal(false)}
+                patient={{
+                    name: patient.name,
+                    nik: patient.nik,
+                    birthDate: patient.birthDate,
+                }}
+                diagnosis={checkups.find(c => c.status.includes("DIAGNOSA"))?.notes || ""}
+            />
         </main>
     );
 }

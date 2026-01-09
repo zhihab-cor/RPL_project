@@ -214,18 +214,21 @@ export default function DashboardPage() {
                     >
                       <div className="flex items-start gap-4">
                         <div
-                          className={`p-3 rounded-full mt-1 ${item.status.includes("BAHAYA")
-                              ? "bg-red-100 text-red-600"
-                              : item.status.includes("WASPADA")
-                                ? "bg-yellow-100 text-yellow-600"
-                                : "bg-green-100 text-green-600"
-                            }`}
+                          className={`p-3 rounded-full mt-1 ${
+                            item.status.includes("DIAGNOSA")
+                              ? "bg-indigo-100 text-indigo-600"
+                              : item.status.includes("BAHAYA")
+                                ? "bg-red-100 text-red-600"
+                                : item.status.includes("WASPADA")
+                                  ? "bg-yellow-100 text-yellow-600"
+                                  : "bg-green-100 text-green-600"
+                          }`}
                         >
                           <Activity size={20} />
                         </div>
                         <div>
                           <h4 className="font-bold text-gray-900">
-                            Pemeriksaan Mandiri
+                            {item.status.includes("DIAGNOSA") ? "Diagnosa Dokter" : "Pemeriksaan Mandiri"}
                           </h4>
                           <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
                             <Calendar size={14} />
@@ -239,10 +242,16 @@ export default function DashboardPage() {
                               }
                             )}
                           </div>
-                          <p className="text-xs text-gray-400 mt-1">
-                            Tensi: {item.systolic}/{item.diastolic} • Gula:{" "}
-                            {item.bloodSugar || "-"}
-                          </p>
+                          {item.status.includes("DIAGNOSA") ? (
+                            <p className="text-sm text-gray-700 mt-2 bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100">
+                              <strong>Diagnosa:</strong> {item.notes || "-"}
+                            </p>
+                          ) : (
+                            <p className="text-xs text-gray-400 mt-1">
+                              Tensi: {item.systolic}/{item.diastolic} • Gula:{" "}
+                              {item.bloodSugar || "-"}
+                            </p>
+                          )}
                         </div>
                       </div>
 
