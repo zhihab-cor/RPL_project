@@ -80,7 +80,7 @@ export default function Navbar() {
                     {user.name}
                   </p>
                   <p className="text-[10px] uppercase font-bold text-blue-600 tracking-wider">
-                    {user.role === "ADMIN" ? "Administrator" : "Pasien"}
+                    {user.role === "ADMIN" ? "Administrator" : user.role === "DOCTOR" ? "Dokter" : "Pasien"}
                   </p>
                 </div>
 

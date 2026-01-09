@@ -148,9 +148,9 @@ export default function DokterDashboardPage() {
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-2xl font-bold text-gray-800">
-                            Panel Dokter
+                            Dashboard Dokter
                         </h1>
-                        <p className="text-gray-500">Selamat bekerja, {doctor?.name || user.name}</p>
+                        <p className="text-gray-500">Hallo Dokter, {doctor?.name || user.name}</p>
                         {doctor && (
                             <p className="text-sm text-indigo-600 font-medium mt-1">{doctor.specialty}</p>
                         )}
