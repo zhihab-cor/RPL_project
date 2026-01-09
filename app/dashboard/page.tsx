@@ -6,13 +6,14 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Activity, QrCode, Calendar, ArrowRight } from "lucide-react";
+import { Activity, QrCode, Calendar, ArrowRight, Pill } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [checkups, setCheckups] = useState<any[]>([]);
+  const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,6 +43,17 @@ export default function DashboardPage() {
 
       if (!error && history) {
         setCheckups(history);
+      }
+
+      // Fetch prescriptions
+      const { data: prescriptionData, error: prescriptionError } = await supabase
+        .from("Prescription")
+        .select("*")
+        .eq("userId", userId)
+        .order("createdAt", { ascending: false });
+
+      if (!prescriptionError && prescriptionData) {
+        setPrescriptions(prescriptionData);
       }
     } catch (err) {
       console.error("Error fetch history:", err);
@@ -253,6 +265,56 @@ export default function DashboardPage() {
                           size={18}
                           className="text-gray-300 group-hover:text-blue-500 transition-colors"
                         />
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Prescription Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+              <div className="p-6 border-b border-gray-50 flex justify-between items-center">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                  <Pill className="text-green-500" size={20} /> Resep Obat dari Dokter
+                </h3>
+                <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-bold">
+                  {prescriptions.length} Resep
+                </span>
+              </div>
+
+              <div className="divide-y divide-gray-50">
+                {prescriptions.length === 0 ? (
+                  <div className="p-10 text-center text-gray-400">
+                    <Pill size={48} className="mx-auto mb-4 text-gray-300" />
+                    <p>Belum ada resep obat dari dokter.</p>
+                  </div>
+                ) : (
+                  prescriptions.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-5 hover:bg-gray-50 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 rounded-full mt-1 bg-green-100 text-green-600">
+                          <Pill size={20} />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-900">{item.medicineName}</h4>
+                          <p className="text-sm text-gray-600 mt-1">
+                            {item.dosage && <span className="font-medium">Dosis: {item.dosage}</span>}
+                            {item.dosage && item.instructions && " • "}
+                            {item.instructions && <span>{item.instructions}</span>}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
+                            <Calendar size={12} />
+                            {new Date(item.createdAt).toLocaleDateString("id-ID", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))

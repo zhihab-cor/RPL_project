@@ -4,7 +4,7 @@
 import { useState, useEffect, use } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ArrowLeft, User, Activity, Calendar, Mail, CreditCard } from "lucide-react";
+import { ArrowLeft, User, Activity, Calendar, Mail, CreditCard, Pill, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -28,13 +28,29 @@ interface HealthCheckup {
     createdAt: string;
 }
 
+interface Prescription {
+    id: number;
+    medicineName: string;
+    dosage: string;
+    instructions: string;
+    createdAt: string;
+}
+
 export default function PatientDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
     const router = useRouter();
     const [admin, setAdmin] = useState<any>(null);
     const [patient, setPatient] = useState<Patient | null>(null);
     const [checkups, setCheckups] = useState<HealthCheckup[]>([]);
+    const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showPrescriptionForm, setShowPrescriptionForm] = useState(false);
+    const [prescriptionLoading, setPrescriptionLoading] = useState(false);
+    const [prescriptionForm, setPrescriptionForm] = useState({
+        medicineName: "",
+        dosage: "",
+        instructions: "",
+    });
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -76,10 +92,86 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
             if (!checkupError && checkupData) {
                 setCheckups(checkupData);
             }
+
+            // Fetch prescriptions
+            const { data: prescriptionData, error: prescriptionError } = await supabase
+                .from("Prescription")
+                .select("*")
+                .eq("userId", resolvedParams.id)
+                .order("createdAt", { ascending: false });
+
+            if (!prescriptionError && prescriptionData) {
+                setPrescriptions(prescriptionData);
+            }
         } catch (err) {
             console.error("Error fetching patient data:", err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const submitPrescription = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!admin || !patient) return;
+
+        setPrescriptionLoading(true);
+        try {
+            const { error } = await supabase.from("Prescription").insert({
+                userId: patient.id,
+                adminId: admin.id,
+                medicineName: prescriptionForm.medicineName,
+                dosage: prescriptionForm.dosage,
+                instructions: prescriptionForm.instructions,
+            });
+
+            if (!error) {
+                // Refresh prescriptions
+                const { data } = await supabase
+                    .from("Prescription")
+                    .select("*")
+                    .eq("userId", resolvedParams.id)
+                    .order("createdAt", { ascending: false });
+
+                if (data) setPrescriptions(data);
+                
+                // Reset form
+                setPrescriptionForm({ medicineName: "", dosage: "", instructions: "" });
+                setShowPrescriptionForm(false);
+            } else {
+                alert("Gagal menyimpan resep: " + error.message);
+            }
+        } catch (err) {
+            console.error("Error submitting prescription:", err);
+            alert("Terjadi kesalahan sistem");
+        } finally {
+            setPrescriptionLoading(false);
+        }
+    };
+
+    const deletePrescription = async (prescriptionId: number) => {
+        if (!confirm("Yakin ingin menghapus resep ini?")) return;
+
+        try {
+            const { error } = await supabase
+                .from("Prescription")
+                .delete()
+                .eq("id", prescriptionId);
+
+            if (!error) {
+                // Refresh prescriptions
+                const { data } = await supabase
+                    .from("Prescription")
+                    .select("*")
+                    .eq("userId", resolvedParams.id)
+                    .order("createdAt", { ascending: false });
+
+                if (data) setPrescriptions(data);
+            } else {
+                alert("Gagal menghapus resep: " + error.message);
+            }
+        } catch (err) {
+            console.error("Error deleting prescription:", err);
+            alert("Terjadi kesalahan sistem");
         }
     };
 
@@ -280,6 +372,127 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                                                     : "SEHAT"}
                                         </span>
                                     </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Prescription Section */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-8">
+                    <div className="p-6 border-b border-gray-50 flex justify-between items-center">
+                        <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                            <Pill className="text-green-500" size={20} /> Resep Obat
+                        </h3>
+                        <div className="flex items-center gap-3">
+                            <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-bold">
+                                {prescriptions.length} Resep
+                            </span>
+                            <button
+                                onClick={() => setShowPrescriptionForm(!showPrescriptionForm)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
+                            >
+                                <Plus size={16} /> Tambah Resep
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Prescription Form */}
+                    {showPrescriptionForm && (
+                        <form onSubmit={submitPrescription} className="p-6 bg-green-50 border-b border-green-100">
+                            <div className="grid md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Nama Obat *</label>
+                                    <input
+                                        type="text"
+                                        value={prescriptionForm.medicineName}
+                                        onChange={(e) => setPrescriptionForm({ ...prescriptionForm, medicineName: e.target.value })}
+                                        placeholder="Contoh: Paracetamol 500mg"
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none transition"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Dosis</label>
+                                    <input
+                                        type="text"
+                                        value={prescriptionForm.dosage}
+                                        onChange={(e) => setPrescriptionForm({ ...prescriptionForm, dosage: e.target.value })}
+                                        placeholder="Contoh: 3x1 sehari"
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none transition"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Instruksi</label>
+                                    <input
+                                        type="text"
+                                        value={prescriptionForm.instructions}
+                                        onChange={(e) => setPrescriptionForm({ ...prescriptionForm, instructions: e.target.value })}
+                                        placeholder="Contoh: Setelah makan"
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none transition"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex gap-3 mt-4">
+                                <button
+                                    type="submit"
+                                    disabled={prescriptionLoading}
+                                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold transition"
+                                >
+                                    {prescriptionLoading ? "Menyimpan..." : "Simpan Resep"}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPrescriptionForm(false)}
+                                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-xl font-bold transition"
+                                >
+                                    Batal
+                                </button>
+                            </div>
+                        </form>
+                    )}
+
+                    {/* Prescription List */}
+                    <div className="divide-y divide-gray-50">
+                        {prescriptions.length === 0 ? (
+                            <div className="p-10 text-center text-gray-400">
+                                <Pill size={48} className="mx-auto mb-4 text-gray-300" />
+                                <p>Belum ada resep obat untuk pasien ini.</p>
+                            </div>
+                        ) : (
+                            prescriptions.map((item) => (
+                                <div
+                                    key={item.id}
+                                    className="p-5 hover:bg-gray-50 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                                >
+                                    <div className="flex items-start gap-4">
+                                        <div className="p-3 rounded-full mt-1 bg-green-100 text-green-600">
+                                            <Pill size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-900">{item.medicineName}</h4>
+                                            <p className="text-sm text-gray-600 mt-1">
+                                                {item.dosage && <span className="font-medium">Dosis: {item.dosage}</span>}
+                                                {item.dosage && item.instructions && " • "}
+                                                {item.instructions && <span>{item.instructions}</span>}
+                                            </p>
+                                            <div className="flex items-center gap-2 text-xs text-gray-400 mt-2">
+                                                <Calendar size={12} />
+                                                {new Date(item.createdAt).toLocaleDateString("id-ID", {
+                                                    year: "numeric",
+                                                    month: "long",
+                                                    day: "numeric",
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => deletePrescription(item.id)}
+                                        className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition"
+                                        title="Hapus Resep"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
                                 </div>
                             ))
                         )}
