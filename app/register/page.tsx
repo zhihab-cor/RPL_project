@@ -7,11 +7,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Calendar, ChevronDown } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import NotificationModal, { NotificationType } from "@/components/NotificationModal";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info" as NotificationType,
+    primaryButtonText: "OK",
+    onPrimaryClick: undefined as (() => void) | undefined,
+  });
 
   const [formData, setFormData] = useState({
     name: "",
@@ -39,7 +48,14 @@ export default function RegisterPage() {
       !formData.nik ||
       !formData.name
     ) {
-      alert("Mohon lengkapi Nama, Email, Password, dan NIK.");
+      setNotification({
+        isOpen: true,
+        title: "Validasi Gagal",
+        message: "Mohon lengkapi Nama, Email, Password, dan NIK.",
+        type: "warning",
+        primaryButtonText: "OK",
+        onPrimaryClick: undefined,
+      });
       setLoading(false);
       return;
     }
@@ -53,7 +69,14 @@ export default function RegisterPage() {
         .single();
 
       if (existingUser) {
-        alert("Email sudah terdaftar");
+        setNotification({
+          isOpen: true,
+          title: "Gagal",
+          message: "Email sudah terdaftar",
+          type: "warning",
+          primaryButtonText: "OK",
+          onPrimaryClick: undefined,
+        });
         setLoading(false);
         return;
       }
@@ -74,16 +97,36 @@ export default function RegisterPage() {
 
       if (error) {
         console.error("Register Error:", error);
-        alert("Registrasi Gagal: " + error.message);
+        setNotification({
+          isOpen: true,
+          title: "Registrasi Gagal",
+          message: error.message,
+          type: "error",
+          primaryButtonText: "OK",
+          onPrimaryClick: undefined,
+        });
         setLoading(false);
         return;
       }
 
-      alert("Registrasi Berhasil! Silakan Login.");
-      router.push("/login");
+      setNotification({
+        isOpen: true,
+        title: "Registrasi Berhasil",
+        message: "Akun Anda telah berhasil dibuat. Silakan login untuk melanjutkan.",
+        type: "success",
+        primaryButtonText: "Login",
+        onPrimaryClick: () => router.push("/login"),
+      });
     } catch (error) {
       console.error(error);
-      alert("Terjadi kesalahan sistem.");
+      setNotification({
+        isOpen: true,
+        title: "Error",
+        message: "Terjadi kesalahan sistem.",
+        type: "error",
+        primaryButtonText: "OK",
+        onPrimaryClick: undefined,
+      });
     } finally {
       setLoading(false);
     }
@@ -270,6 +313,16 @@ export default function RegisterPage() {
           </form>
         </div>
       </div>
+      
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification(prev => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+        primaryButtonText={notification.primaryButtonText}
+        onPrimaryClick={notification.onPrimaryClick}
+      />
     </div>
   );
 }

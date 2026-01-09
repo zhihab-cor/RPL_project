@@ -16,6 +16,7 @@ import {
   User,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import NotificationModal, { NotificationType } from "@/components/NotificationModal";
 
 export default function PeriksaPage() {
   const router = useRouter();
@@ -47,11 +48,26 @@ export default function PeriksaPage() {
     height: "165",
   });
 
+  const [notification, setNotification] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "info" as NotificationType,
+    primaryButtonText: "OK",
+    onPrimaryClick: undefined as (() => void) | undefined,
+  });
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
-      alert("Silakan login terlebih dahulu!");
-      router.push("/login");
+      setNotification({
+        isOpen: true,
+        title: "Akses Ditolak",
+        message: "Silakan login terlebih dahulu!",
+        type: "warning",
+        primaryButtonText: "Login",
+        onPrimaryClick: () => router.push("/login"),
+      });
       return;
     }
 
@@ -163,7 +179,14 @@ export default function PeriksaPage() {
       // Jika admin, buat/cari user pasien dulu
       if (isAdmin) {
         if (!patientData.name || !patientData.nik) {
-          alert("Nama dan NIK pasien wajib diisi!");
+          setNotification({
+            isOpen: true,
+            title: "Data Tidak Lengkap",
+            message: "Nama dan NIK pasien wajib diisi!",
+            type: "warning",
+            primaryButtonText: "OK",
+            onPrimaryClick: undefined,
+          });
           setLoading(false);
           return;
         }
@@ -192,7 +215,14 @@ export default function PeriksaPage() {
             .single();
 
           if (createError || !newPatient) {
-            alert("Gagal membuat data pasien: " + (createError?.message || "Unknown error"));
+            setNotification({
+              isOpen: true,
+              title: "Error",
+              message: "Gagal membuat data pasien: " + (createError?.message || "Unknown error"),
+              type: "error",
+              primaryButtonText: "OK",
+              onPrimaryClick: undefined,
+            });
             setLoading(false);
             return;
           }
@@ -215,7 +245,14 @@ export default function PeriksaPage() {
 
       if (!error) {
         if (isAdmin) {
-          alert("Data pemeriksaan pasien berhasil disimpan!");
+          setNotification({
+            isOpen: true,
+            title: "Berhasil",
+            message: "Data pemeriksaan pasien berhasil disimpan!",
+            type: "success",
+            primaryButtonText: "OK",
+            onPrimaryClick: undefined,
+          });
           // Reset form pasien
           setPatientData({ name: "", age: "", gender: "Laki-laki", nik: "", phone: "" });
         } else {
@@ -223,11 +260,25 @@ export default function PeriksaPage() {
         }
       } else {
         console.error("Insert Error:", error);
-        alert("Gagal menyimpan data ke database");
+        setNotification({
+          isOpen: true,
+          title: "Gagal",
+          message: "Gagal menyimpan data ke database",
+          type: "error",
+          primaryButtonText: "OK",
+          onPrimaryClick: undefined,
+        });
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan koneksi");
+      setNotification({
+        isOpen: true,
+        title: "Error",
+        message: "Terjadi kesalahan koneksi",
+        type: "error",
+        primaryButtonText: "OK",
+        onPrimaryClick: undefined,
+      });
     } finally {
       setLoading(false);
     }
@@ -573,6 +624,16 @@ export default function PeriksaPage() {
         </div>
       </div>
       <Footer />
+      
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={() => setNotification(prev => ({ ...prev, isOpen: false }))}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+        primaryButtonText={notification.primaryButtonText}
+        onPrimaryClick={notification.onPrimaryClick}
+      />
     </main>
   );
 }

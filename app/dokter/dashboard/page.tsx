@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { Calendar, Clock, User, Stethoscope, ArrowRight, Activity } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import NotificationModal, { NotificationType } from "@/components/NotificationModal";
 
 interface Patient {
     id: number;
@@ -38,6 +39,14 @@ export default function DokterDashboardPage() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loading, setLoading] = useState(true);
+    const [notification, setNotification] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info" as NotificationType,
+        primaryButtonText: "OK",
+        onPrimaryClick: undefined as (() => void) | undefined,
+    });
 
     const today = new Date().toISOString().split("T")[0];
 
@@ -115,7 +124,14 @@ export default function DokterDashboardPage() {
                 }
             } else {
                 console.log("Doctor profile not found for user:", userId, userName);
-                alert("Profil dokter tidak ditemukan. Pastikan tabel Doctor sudah ada data dan userId sudah diset.");
+                setNotification({
+                    isOpen: true,
+                    title: "Profil Tidak Ditemukan",
+                    message: "Profil dokter tidak ditemukan. Pastikan tabel Doctor sudah ada data dan userId sudah diset.",
+                    type: "warning",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                });
             }
         } catch (err) {
             console.error("Error fetching data:", err);
@@ -265,6 +281,16 @@ export default function DokterDashboardPage() {
                 </div>
             </div>
             <Footer />
+            
+            <NotificationModal
+                isOpen={notification.isOpen}
+                onClose={() => setNotification(prev => ({ ...prev, isOpen: false }))}
+                title={notification.title}
+                message={notification.message}
+                type={notification.type}
+                primaryButtonText={notification.primaryButtonText}
+                onPrimaryClick={notification.onPrimaryClick}
+            />
         </main>
     );
 }

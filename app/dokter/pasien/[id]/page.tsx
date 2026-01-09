@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { ArrowLeft, User, Activity, Calendar, Pill, FileText, Check, Stethoscope } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import NotificationModal, { NotificationType } from "@/components/NotificationModal";
 import ReferralLetterModal from "@/components/ReferralLetterModal";
 
 interface Patient {
@@ -59,6 +60,14 @@ export default function DokterPasienDetailPage({ params }: { params: Promise<{ i
         instructions: "",
     });
     const [showReferralModal, setShowReferralModal] = useState(false);
+    const [notification, setNotification] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info" as NotificationType,
+        primaryButtonText: "OK",
+        onPrimaryClick: undefined as (() => void) | undefined,
+    });
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -143,9 +152,25 @@ export default function DokterPasienDetailPage({ params }: { params: Promise<{ i
                 
                 setPrescriptionForm({ medicineName: "", dosage: "", instructions: "" });
                 setShowPrescriptionForm(false);
-                alert("Resep berhasil ditambahkan!");
+                setPrescriptionForm({ medicineName: "", dosage: "", instructions: "" });
+                setShowPrescriptionForm(false);
+                setNotification({
+                    isOpen: true,
+                    title: "Berhasil",
+                    message: "Resep berhasil ditambahkan!",
+                    type: "success",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                });
             } else {
-                alert("Gagal menyimpan resep: " + error.message);
+                setNotification({
+                    isOpen: true,
+                    title: "Gagal",
+                    message: "Gagal menyimpan resep: " + error.message,
+                    type: "error",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                });
             }
         } catch (err) {
             console.error("Error:", err);
@@ -180,15 +205,35 @@ export default function DokterPasienDetailPage({ params }: { params: Promise<{ i
                 .eq("id", parseInt(appointmentId));
             
             if (error) {
-                alert("Gagal menyimpan: " + error.message);
+                setNotification({
+                    isOpen: true,
+                    title: "Gagal",
+                    message: "Gagal menyimpan: " + error.message,
+                    type: "error",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                });
                 return;
             }
             
-            alert("Pemeriksaan selesai! Diagnosa tersimpan.");
-            router.push("/dokter/dashboard");
+            setNotification({
+                isOpen: true,
+                title: "Pemeriksaan Selesai",
+                message: "Pemeriksaan selesai! Diagnosa tersimpan.",
+                type: "success",
+                primaryButtonText: "Ke Dashboard",
+                onPrimaryClick: () => router.push("/dokter/dashboard"),
+            });
         } catch (err) {
             console.error("Error:", err);
-            alert("Terjadi kesalahan");
+            setNotification({
+                isOpen: true,
+                title: "Error",
+                message: "Terjadi kesalahan",
+                type: "error",
+                primaryButtonText: "OK",
+                onPrimaryClick: undefined,
+            });
         }
     };
 
@@ -425,6 +470,16 @@ export default function DokterPasienDetailPage({ params }: { params: Promise<{ i
                     birthDate: patient.birthDate,
                 }}
                 diagnosis={diagnosis || checkups.find(c => c.status.includes("DIAGNOSA"))?.notes || ""}
+            />
+            
+            <NotificationModal
+                isOpen={notification.isOpen}
+                onClose={() => setNotification(prev => ({ ...prev, isOpen: false }))}
+                title={notification.title}
+                message={notification.message}
+                type={notification.type}
+                primaryButtonText={notification.primaryButtonText}
+                onPrimaryClick={notification.onPrimaryClick}
             />
         </main>
     );

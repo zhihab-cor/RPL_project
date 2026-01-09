@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { X, FileText, Download } from "lucide-react";
 import jsPDF from "jspdf";
+import NotificationModal, { NotificationType } from "@/components/NotificationModal";
 
 interface ReferralLetterModalProps {
     isOpen: boolean;
@@ -36,6 +37,13 @@ export default function ReferralLetterModal({
     });
 
     const [loading, setLoading] = useState(false);
+    const [notification, setNotification] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info" as NotificationType,
+        onCloseAction: null as (() => void) | null,
+    });
 
     if (!isOpen) return null;
 
@@ -169,11 +177,23 @@ export default function ReferralLetterModal({
 
             // Download
             doc.save(`Surat_Rujukan_${patient.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`);
-            alert("Surat rujukan berhasil diunduh!");
-            onClose();
+            
+            setNotification({
+                isOpen: true,
+                title: "Berhasil",
+                message: "Surat rujukan berhasil diunduh!",
+                type: "success",
+                onCloseAction: onClose, // Close modal after notification is closed
+            });
         } catch (err) {
             console.error("Error generating PDF:", err);
-            alert("Gagal membuat PDF");
+            setNotification({
+                isOpen: true,
+                title: "Error",
+                message: "Gagal membuat PDF",
+                type: "error",
+                onCloseAction: null,
+            });
         } finally {
             setLoading(false);
         }
@@ -335,6 +355,19 @@ export default function ReferralLetterModal({
                     </button>
                 </div>
             </div>
+            
+            <NotificationModal
+                isOpen={notification.isOpen}
+                onClose={() => {
+                    setNotification(prev => ({ ...prev, isOpen: false }));
+                    if (notification.onCloseAction) {
+                        notification.onCloseAction();
+                    }
+                }}
+                title={notification.title}
+                message={notification.message}
+                type={notification.type}
+            />
         </div>
     );
 }

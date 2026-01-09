@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { ArrowLeft, Package, Plus, Minus, Trash2, Edit2, X, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import NotificationModal, { NotificationType } from "@/components/NotificationModal";
 
 interface Medicine {
     id: number;
@@ -28,6 +29,16 @@ export default function StokObatPage() {
         stock: 0,
         unit: "tablet",
         description: "",
+    });
+    const [notification, setNotification] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info" as NotificationType,
+        primaryButtonText: "OK",
+        onPrimaryClick: undefined as (() => void) | undefined,
+        secondaryButtonText: undefined as string | undefined,
+        onSecondaryClick: undefined as (() => void) | undefined,
     });
 
     useEffect(() => {
@@ -79,7 +90,16 @@ export default function StokObatPage() {
                 setFormData({ name: "", stock: 0, unit: "tablet", description: "" });
                 setShowAddForm(false);
             } else {
-                alert("Gagal menambah obat: " + error.message);
+                setNotification({
+                    isOpen: true,
+                    title: "Gagal",
+                    message: "Gagal menambah obat: " + error.message,
+                    type: "error",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                    secondaryButtonText: undefined,
+                    onSecondaryClick: undefined,
+                });
             }
         } catch (err) {
             console.error("Error adding medicine:", err);
@@ -102,8 +122,21 @@ export default function StokObatPage() {
         }
     };
 
-    const deleteMedicine = async (id: number) => {
-        if (!confirm("Yakin ingin menghapus obat ini?")) return;
+    const deleteMedicine = (id: number) => {
+        setNotification({
+            isOpen: true,
+            title: "Konfirmasi Hapus",
+            message: "Yakin ingin menghapus obat ini? Tindakan ini tidak dapat dibatalkan.",
+            type: "warning",
+            primaryButtonText: "Hapus",
+            onPrimaryClick: () => proceedDelete(id),
+            secondaryButtonText: "Batal",
+            onSecondaryClick: undefined,
+        });
+    };
+
+    const proceedDelete = async (id: number) => {
+        setNotification(prev => ({ ...prev, isOpen: false }));
         try {
             const { error } = await supabase
                 .from("MedicineStock")
@@ -112,8 +145,27 @@ export default function StokObatPage() {
 
             if (!error) {
                 setMedicines(medicines.filter(m => m.id !== id));
+                setNotification({
+                    isOpen: true,
+                    title: "Berhasil",
+                    message: "Obat berhasil dihapus.",
+                    type: "success",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                    secondaryButtonText: undefined,
+                    onSecondaryClick: undefined,
+                });
             } else {
-                alert("Gagal menghapus: " + error.message);
+                setNotification({
+                    isOpen: true,
+                    title: "Gagal",
+                    message: "Gagal menghapus: " + error.message,
+                    type: "error",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                    secondaryButtonText: undefined,
+                    onSecondaryClick: undefined,
+                });
             }
         } catch (err) {
             console.error("Error deleting medicine:", err);
@@ -298,6 +350,18 @@ export default function StokObatPage() {
                 </div>
             </div>
             <Footer />
+            
+            <NotificationModal
+                isOpen={notification.isOpen}
+                onClose={() => setNotification(prev => ({ ...prev, isOpen: false }))}
+                title={notification.title}
+                message={notification.message}
+                type={notification.type}
+                primaryButtonText={notification.primaryButtonText}
+                onPrimaryClick={notification.onPrimaryClick}
+                secondaryButtonText={notification.secondaryButtonText}
+                onSecondaryClick={notification.onSecondaryClick}
+            />
         </main>
     );
 }

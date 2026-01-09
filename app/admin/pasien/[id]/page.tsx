@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { ArrowLeft, User, Activity, Calendar, Mail, CreditCard, Pill, Plus, Trash2, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import NotificationModal, { NotificationType } from "@/components/NotificationModal";
 import ReferralLetterModal from "@/components/ReferralLetterModal";
 
 interface Patient {
@@ -53,6 +54,16 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
         instructions: "",
     });
     const [showReferralModal, setShowReferralModal] = useState(false);
+    const [notification, setNotification] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info" as NotificationType,
+        primaryButtonText: "OK",
+        onPrimaryClick: undefined as (() => void) | undefined,
+        secondaryButtonText: undefined as string | undefined,
+        onSecondaryClick: undefined as (() => void) | undefined,
+    });
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -139,20 +150,60 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                 // Reset form
                 setPrescriptionForm({ medicineName: "", dosage: "", instructions: "" });
                 setShowPrescriptionForm(false);
+                setNotification({
+                    isOpen: true,
+                    title: "Berhasil",
+                    message: "Resep berhasil disimpan.",
+                    type: "success",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                    secondaryButtonText: undefined,
+                    onSecondaryClick: undefined,
+                });
             } else {
-                alert("Gagal menyimpan resep: " + error.message);
+                setNotification({
+                    isOpen: true,
+                    title: "Gagal",
+                    message: "Gagal menyimpan resep: " + error.message,
+                    type: "error",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                    secondaryButtonText: undefined,
+                    onSecondaryClick: undefined,
+                });
             }
         } catch (err) {
             console.error("Error submitting prescription:", err);
-            alert("Terjadi kesalahan sistem");
+            setNotification({
+                isOpen: true,
+                title: "Error",
+                message: "Terjadi kesalahan sistem",
+                type: "error",
+                primaryButtonText: "OK",
+                onPrimaryClick: undefined,
+                secondaryButtonText: undefined,
+                onSecondaryClick: undefined,
+            });
         } finally {
             setPrescriptionLoading(false);
         }
     };
 
-    const deletePrescription = async (prescriptionId: number) => {
-        if (!confirm("Yakin ingin menghapus resep ini?")) return;
+    const deletePrescription = (prescriptionId: number) => {
+        setNotification({
+            isOpen: true,
+            title: "Konfirmasi Hapus",
+            message: "Yakin ingin menghapus resep ini?",
+            type: "warning",
+            primaryButtonText: "Hapus",
+            onPrimaryClick: () => proceedDeletePrescription(prescriptionId),
+            secondaryButtonText: "Batal",
+            onSecondaryClick: undefined,
+        });
+    };
 
+    const proceedDeletePrescription = async (prescriptionId: number) => {
+        setNotification(prev => ({ ...prev, isOpen: false }));
         try {
             const { error } = await supabase
                 .from("Prescription")
@@ -168,12 +219,41 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                     .order("createdAt", { ascending: false });
 
                 if (data) setPrescriptions(data);
+                
+                setNotification({
+                    isOpen: true,
+                    title: "Berhasil",
+                    message: "Resep berhasil dihapus.",
+                    type: "success",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                    secondaryButtonText: undefined,
+                    onSecondaryClick: undefined,
+                });
             } else {
-                alert("Gagal menghapus resep: " + error.message);
+                setNotification({
+                    isOpen: true,
+                    title: "Gagal",
+                    message: "Gagal menghapus resep: " + error.message,
+                    type: "error",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                    secondaryButtonText: undefined,
+                    onSecondaryClick: undefined,
+                });
             }
         } catch (err) {
             console.error("Error deleting prescription:", err);
-            alert("Terjadi kesalahan sistem");
+            setNotification({
+                isOpen: true,
+                title: "Error",
+                message: "Terjadi kesalahan sistem",
+                type: "error",
+                primaryButtonText: "OK",
+                onPrimaryClick: undefined,
+                secondaryButtonText: undefined,
+                onSecondaryClick: undefined,
+            });
         }
     };
 
@@ -535,6 +615,18 @@ export default function PatientDetailPage({ params }: { params: Promise<{ id: st
                     birthDate: patient.birthDate,
                 }}
                 diagnosis={checkups.find(c => c.status.includes("DIAGNOSA"))?.notes || ""}
+            />
+
+            <NotificationModal
+                isOpen={notification.isOpen}
+                onClose={() => setNotification(prev => ({ ...prev, isOpen: false }))}
+                title={notification.title}
+                message={notification.message}
+                type={notification.type}
+                primaryButtonText={notification.primaryButtonText}
+                onPrimaryClick={notification.onPrimaryClick}
+                secondaryButtonText={notification.secondaryButtonText}
+                onSecondaryClick={notification.onSecondaryClick}
             />
         </main>
     );

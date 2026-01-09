@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { ArrowLeft, Calendar, Clock, User, Stethoscope, Plus, Check, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import NotificationModal, { NotificationType } from "@/components/NotificationModal";
 
 interface Doctor {
     id: number;
@@ -43,6 +44,14 @@ export default function AdminJadwalDokterPage() {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [formLoading, setFormLoading] = useState(false);
+    const [notification, setNotification] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        type: "info" as NotificationType,
+        primaryButtonText: "OK",
+        onPrimaryClick: undefined as (() => void) | undefined,
+    });
 
     const today = new Date().toISOString().split("T")[0];
 
@@ -105,7 +114,14 @@ export default function AdminJadwalDokterPage() {
     const createAppointment = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.patientId || !formData.doctorId) {
-            alert("Pilih pasien dan dokter!");
+            setNotification({
+                isOpen: true,
+                title: "Validasi Gagal",
+                message: "Pilih pasien dan dokter!",
+                type: "warning",
+                primaryButtonText: "OK",
+                onPrimaryClick: undefined,
+            });
             return;
         }
 
@@ -121,12 +137,26 @@ export default function AdminJadwalDokterPage() {
             });
 
             if (!error) {
-                alert("Janji temu berhasil dibuat!");
+                setNotification({
+                    isOpen: true,
+                    title: "Berhasil",
+                    message: "Janji temu berhasil dibuat!",
+                    type: "success",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                });
                 setFormData({ patientId: "", doctorId: "", appointmentDate: today, appointmentTime: "09:00", notes: "" });
                 setShowForm(false);
                 fetchData();
             } else {
-                alert("Gagal: " + error.message);
+                setNotification({
+                    isOpen: true,
+                    title: "Gagal",
+                    message: "Gagal: " + error.message,
+                    type: "error",
+                    primaryButtonText: "OK",
+                    onPrimaryClick: undefined,
+                });
             }
         } catch (err) {
             console.error("Error:", err);
@@ -352,6 +382,16 @@ export default function AdminJadwalDokterPage() {
                 </div>
             </div>
             <Footer />
+            
+            <NotificationModal
+                isOpen={notification.isOpen}
+                onClose={() => setNotification(prev => ({ ...prev, isOpen: false }))}
+                title={notification.title}
+                message={notification.message}
+                type={notification.type}
+                primaryButtonText={notification.primaryButtonText}
+                onPrimaryClick={notification.onPrimaryClick}
+            />
         </main>
     );
 }
