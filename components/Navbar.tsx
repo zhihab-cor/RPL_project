@@ -59,6 +59,14 @@ export default function Navbar() {
             >
               Beranda
             </Link>
+            {user && user.role !== "ADMIN" && user.role !== "DOCTOR" && (
+                <Link
+                href="/riwayat"
+                className="text-gray-600 hover:text-blue-600 font-medium transition"
+                >
+                Riwayat
+                </Link>
+            )}
             <Link
               href="/periksa"
               className="text-gray-600 hover:text-blue-600 font-medium transition"
@@ -127,6 +135,14 @@ export default function Navbar() {
           >
             Beranda
           </Link>
+          {user && user.role !== "ADMIN" && user.role !== "DOCTOR" && (
+              <Link
+                href="/riwayat"
+                className="block px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium"
+              >
+                Riwayat
+              </Link>
+          )}
           <Link
             href="/periksa"
             className="block px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 font-medium"
