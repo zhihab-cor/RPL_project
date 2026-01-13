@@ -5,7 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Calendar, ChevronDown } from "lucide-react";
+import { Eye, EyeOff, Calendar, Linkedin, Instagram, Facebook, Twitter } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import NotificationModal, { NotificationType } from "@/components/NotificationModal";
 
@@ -61,7 +61,6 @@ export default function RegisterPage() {
     }
 
     try {
-      // Cek apakah email sudah terdaftar
       const { data: existingUser } = await supabase
         .from("User")
         .select("id")
@@ -81,8 +80,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Insert user baru ke Supabase
-      const { data: user, error } = await supabase
+      const { error } = await supabase
         .from("User")
         .insert({
           name: formData.name,
@@ -91,9 +89,7 @@ export default function RegisterPage() {
           nik: formData.nik,
           birthDate: formData.birthDate || null,
           role: "PATIENT",
-        })
-        .select()
-        .single();
+        });
 
       if (error) {
         console.error("Register Error:", error);
@@ -134,49 +130,90 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Left Side */}
-      <div className="hidden lg:flex w-1/2 relative flex-col justify-center items-center bg-blue-400 overflow-hidden">
-        <div className="relative w-full h-full">
-          <Image
-            src="/register-illustration-full.png"
-            alt="Medical Consultation"
-            fill
-            className="object-contain"
-            priority
-          />
+      {/* Left Side - Blue gradient with doctor */}
+      <div className="hidden lg:flex w-1/2 relative flex-col justify-between overflow-hidden"
+           style={{ background: 'linear-gradient(135deg, #667eea 0%, #4267B2 50%, #3b5998 100%)' }}>
+        
+        {/* Decorative shapes */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full transform translate-x-32 -translate-y-32" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/5 rounded-full transform -translate-x-48 translate-y-48" />
+        
+        {/* Logo area */}
+        <div className="relative z-10 p-8">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+              <span className="text-white text-sm font-bold">+</span>
+            </div>
+            <span className="text-white text-lg font-semibold">DokTerKu</span>
+          </div>
+        </div>
+        
+        {/* Doctor illustration area */}
+        <div className="relative z-10 flex-1 flex items-center justify-center px-8">
+          <div className="relative">
+            {/* Colorful checkmarks decoration */}
+            <div className="absolute -left-8 top-1/2 transform -translate-y-1/2">
+              <div className="relative">
+                <svg width="80" height="120" viewBox="0 0 80 120" className="transform -rotate-12">
+                  {/* Pink checkmark */}
+                  <path d="M10 60 L30 85 L70 30" stroke="#FF6B9D" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                  {/* Yellow line */}
+                  <path d="M5 95 L75 95" stroke="#FFD93D" strokeWidth="8" strokeLinecap="round" fill="none" transform="rotate(-30, 40, 95)" />
+                  {/* Blue accent */}
+                  <circle cx="65" cy="45" r="15" fill="#4FC3F7" opacity="0.8" />
+                </svg>
+              </div>
+            </div>
+            
+            {/* Doctor image container */}
+            <div className="w-80 h-96 relative">
+              <Image
+                src="/register-illustration.png"
+                alt="Medical Consultation"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+          </div>
+        </div>
+        
+        {/* Copyright */}
+        <div className="relative z-10 p-8">
+          <p className="text-white/70 text-sm">
+            Copyright © 2024. DokTerKu. All rights reserved.
+          </p>
         </div>
       </div>
 
-      {/* Right Side */}
-      <div className="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 bg-white relative">
+      {/* Right Side - Form */}
+      <div className="flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-20 bg-white relative overflow-y-auto py-8">
         <button
           onClick={() => router.push("/")}
-          className="absolute top-6 right-6 text-gray-500 hover:text-gray-700 transition"
+          className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition"
         >
           <span className="text-2xl">×</span>
         </button>
 
         <div className="max-w-md w-full mx-auto">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Daftar Sekarang
-            </h2>
-            <p className="text-gray-500">
-              Sudah Punya Akun?{" "}
-              <Link
-                href="/login"
-                className="text-blue-500 hover:underline font-medium"
-              >
-                Log in
-              </Link>
-            </p>
+          {/* Tabs - Sign Up is active */}
+          <div className="flex gap-8 mb-8 border-b border-gray-100">
+            <span className="pb-3 text-lg font-medium text-gray-900 border-b-2 border-gray-900">
+              Sign Up
+            </span>
+            <Link
+              href="/login"
+              className="pb-3 text-lg font-medium text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Sign In
+            </Link>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Nama Lengkap */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Nama Lengkap
+              <label className="block text-sm font-medium text-blue-600 mb-2">
+                Full Name
               </label>
               <input
                 type="text"
@@ -184,14 +221,14 @@ export default function RegisterPage() {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Masukkan Nama Lengkap"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition text-gray-900"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-700 placeholder-gray-400"
                 required
               />
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-blue-600 mb-2">
                 Email
               </label>
               <input
@@ -200,23 +237,22 @@ export default function RegisterPage() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="email@contoh.com"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition text-gray-900"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-700 placeholder-gray-400"
                 required
               />
             </div>
 
-            {/* No HP */}
+            {/* Phone */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-blue-600 mb-2">
                 No HP
               </label>
               <div className="flex gap-2">
-                <div className="flex items-center px-3 py-3 border border-gray-300 rounded-lg bg-white min-w-[100px]">
-                  <span className="w-6 h-4 bg-red-600 border border-gray-200 mr-2 relative overflow-hidden">
+                <div className="flex items-center px-3 py-3 border border-gray-200 rounded-lg bg-gray-50 min-w-[90px]">
+                  <span className="w-6 h-4 bg-red-600 border border-gray-200 mr-2 relative overflow-hidden rounded-sm">
                     <span className="absolute bottom-0 left-0 w-full h-1/2 bg-white"></span>
                   </span>
-                  <span className="text-gray-700 font-medium">+62</span>
-                  <ChevronDown size={16} className="ml-auto text-gray-400" />
+                  <span className="text-gray-600 text-sm font-medium">+62</span>
                 </div>
                 <input
                   type="tel"
@@ -224,14 +260,14 @@ export default function RegisterPage() {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="8xxxxx"
-                  className="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition text-gray-900"
+                  className="flex-1 px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-700 placeholder-gray-400"
                 />
               </div>
             </div>
 
             {/* NIK */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-blue-600 mb-2">
                 NIK
               </label>
               <input
@@ -240,15 +276,15 @@ export default function RegisterPage() {
                 value={formData.nik}
                 onChange={handleChange}
                 placeholder="333XXXXXX"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition text-gray-900"
+                className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-700 placeholder-gray-400"
                 required
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Kata Sandi
+              <label className="block text-sm font-medium text-blue-600 mb-2">
+                Password
               </label>
               <div className="relative">
                 <input
@@ -256,8 +292,8 @@ export default function RegisterPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="••••••••••••"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition pr-10 text-gray-900"
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-700 pr-10"
                   required
                 />
                 <button
@@ -270,9 +306,9 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* Tanggal Lahir */}
+            {/* Birth Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-blue-600 mb-2">
                 Tanggal Lahir
               </label>
               <div className="relative">
@@ -281,7 +317,7 @@ export default function RegisterPage() {
                   name="birthDate"
                   value={formData.birthDate}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none transition text-gray-900"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-gray-700"
                 />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                   <Calendar size={20} />
@@ -289,28 +325,48 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition shadow-md mt-4"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-lg transition shadow-lg shadow-blue-500/30 mt-2"
             >
               {loading ? "Processing..." : "Sign Up"}
             </button>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="remember"
-                name="rememberMe"
-                checked={formData.rememberMe}
-                onChange={handleChange}
-                className="w-5 h-5 border-gray-300 rounded text-blue-500 focus:ring-blue-500"
-              />
-              <label htmlFor="remember" className="text-sm text-gray-700">
-                Ingatkan aku
-              </label>
+            {/* Link to login */}
+            <div className="text-center">
+              <span className="text-rose-500 hover:underline cursor-pointer text-sm">
+                <Link href="/login">I have an Account ?</Link>
+              </span>
             </div>
           </form>
+
+          {/* Social Icons */}
+          <div className="flex justify-center gap-4 mt-6 pt-6 border-t border-gray-100">
+            <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-blue-600 transition">
+              <Linkedin size={18} />
+            </button>
+            <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-pink-500 transition">
+              <Instagram size={18} />
+            </button>
+            <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-blue-600 transition">
+              <Facebook size={18} />
+            </button>
+            <button className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-sky-500 transition">
+              <Twitter size={18} />
+            </button>
+          </div>
+
+          {/* Contact info */}
+          <div className="flex justify-center gap-6 mt-4 text-sm text-gray-500">
+            <span className="flex items-center gap-2">
+              <span>📞</span> 08123456789
+            </span>
+            <span className="flex items-center gap-2">
+              <span>✉️</span> info@dokterku.id
+            </span>
+          </div>
         </div>
       </div>
       
