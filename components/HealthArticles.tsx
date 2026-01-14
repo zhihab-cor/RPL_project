@@ -33,10 +33,10 @@ const articles = [
         title: 'Bahaya Resistensi Antibiotik: Jangan Sembarangan Minum Obat',
         author: 'Dr. Budi Santoso',
         date: 'Januari 8, 2026',
-        image: '/article-antibiotik.jpg',
+        image: '/antibiotik.jpg',
         tag: 'Edukasi',
         description: 'Penggunaan antibiotik tanpa resep dokter dapat menyebabkan resistensi. Ketahui bahayanya.',
-        link: '',
+        link: 'https://youtu.be/x5dgbui59FY?si=EYZ9JwKIQmiMCIE0',
     },
     {
         title: 'Mental Health Awareness: Pentingnya Kesehatan Mental di Era Digital',
