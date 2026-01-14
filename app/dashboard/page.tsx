@@ -14,7 +14,21 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
+    // Check localStorage first
+    let storedUser = localStorage.getItem("user");
+
+    // If not in localStorage, check cookie (for OAuth users)
+    if (!storedUser) {
+      const cookies = document.cookie.split(';');
+      const userCookie = cookies.find(c => c.trim().startsWith('user_data='));
+      if (userCookie) {
+        const userData = decodeURIComponent(userCookie.split('=')[1]);
+        // Store in localStorage for consistency
+        localStorage.setItem("user", userData);
+        storedUser = userData;
+      }
+    }
+
     if (storedUser) {
       const userData = JSON.parse(storedUser);
 
@@ -48,7 +62,7 @@ export default function DashboardPage() {
               <p className="text-xl text-blue-100 mb-8 max-w-2xl leading-relaxed">
                 Pantau kesehatan Anda secara rutin dan dapatkan informasi kesehatan terbaru untuk gaya hidup yang lebih baik.
               </p>
-              
+
               <div className="flex flex-wrap gap-4">
                 <Link
                   href="/periksa"
@@ -64,31 +78,31 @@ export default function DashboardPage() {
                 </Link>
               </div>
             </div>
-            
+
             {/* Optional: Decorative Illustration or Stats Summary could go here */}
             <div className="hidden md:block md:w-1/3">
-               <div className="bg-white/10 p-6 rounded-2xl backdrop-blur-sm border border-white/10 shadow-2xl skew-y-3 transform hover:skew-y-0 transition duration-500">
-                    <h3 className="text-xl font-bold mb-4 opacity-90">Jadwal Praktek</h3>
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-3 bg-white/20 p-3 rounded-lg">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">SN</div>
-                            <div>
-                                <p className="font-bold text-sm">Senin</p>
-                                <p className="text-xs opacity-80">08:00 - 15:00</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3 bg-white/20 p-3 rounded-lg">
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">SL</div>
-                            <div>
-                                <p className="font-bold text-sm">Selasa</p>
-                                <p className="text-xs opacity-80">08:00 - 15:00</p>
-                            </div>
-                        </div>
+              <div className="bg-white/10 p-6 rounded-2xl backdrop-blur-sm border border-white/10 shadow-2xl skew-y-3 transform hover:skew-y-0 transition duration-500">
+                <h3 className="text-xl font-bold mb-4 opacity-90">Jadwal Praktek</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 bg-white/20 p-3 rounded-lg">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">SN</div>
+                    <div>
+                      <p className="font-bold text-sm">Senin</p>
+                      <p className="text-xs opacity-80">08:00 - 15:00</p>
                     </div>
-                    <Link href="/jadwal-dokter" className="block mt-4 text-center text-sm font-bold bg-white/20 text-white py-2 rounded-lg hover:bg-white/30 transition">
-                        Lihat Jadwal Lengkap
-                    </Link>
-               </div>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white/20 p-3 rounded-lg">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">SL</div>
+                    <div>
+                      <p className="font-bold text-sm">Selasa</p>
+                      <p className="text-xs opacity-80">08:00 - 15:00</p>
+                    </div>
+                  </div>
+                </div>
+                <Link href="/jadwal-dokter" className="block mt-4 text-center text-sm font-bold bg-white/20 text-white py-2 rounded-lg hover:bg-white/30 transition">
+                  Lihat Jadwal Lengkap
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -101,13 +115,13 @@ export default function DashboardPage() {
       <div className="max-w-4xl mx-auto px-6 py-16 text-center">
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Butuh konsultasi lebih lanjut?</h2>
         <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Jangan ragu untuk mengunjungi fasilitas kesehatan kami jika Anda merasakan gejala yang tidak biasa.
+          Jangan ragu untuk mengunjungi fasilitas kesehatan kami jika Anda merasakan gejala yang tidak biasa.
         </p>
-        <Link 
-            href="/jadwal-dokter"
-            className="inline-flex items-center gap-2 text-blue-600 font-bold text-lg hover:underline"
+        <Link
+          href="/jadwal-dokter"
+          className="inline-flex items-center gap-2 text-blue-600 font-bold text-lg hover:underline"
         >
-            Cari Dokter Spesialis <ArrowRight size={20} />
+          Cari Dokter Spesialis <ArrowRight size={20} />
         </Link>
       </div>
 
